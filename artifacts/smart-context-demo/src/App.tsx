@@ -8,20 +8,6 @@ import { OpportunityLayout } from './pages/OpportunityLayout';
 import { Sources } from './pages/Sources';
 import { useEffect } from 'react';
 
-// The Logo from original demo to use in Sidebar
-export function Logo({ invert = false }: { invert?: boolean }) {
-  return (
-    <div className={`flex items-center gap-2 font-bold ${invert ? 'text-white' : 'text-sc-navy'}`}>
-      <div className="relative w-6 h-6 flex-shrink-0">
-        <div className={`absolute w-3.5 h-[22px] border-[2.5px] rounded-full top-[1px] left-[1px] rotate-[28deg] ${invert ? 'border-sc-cyan' : 'border-sc-cyan'}`}></div>
-        <div className={`absolute w-3.5 h-[22px] border-[2.5px] rounded-full top-[1px] right-[1px] -rotate-[28deg] ${invert ? 'border-sc-blue' : 'border-sc-blue'}`}></div>
-        <div className="absolute w-[7px] h-[7px] bg-sc-cyan rounded-full left-[8.5px] top-[8.5px]"></div>
-      </div>
-      <span className="tracking-tight text-xl font-black">Smart Context</span>
-    </div>
-  );
-}
-
 export default function App() {
   // Clear any existing custom cursors or styles from the body that might be left over if hot-reloading
   useEffect(() => {

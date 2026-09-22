@@ -1,4 +1,5 @@
 import { Database, Check, Server, FileBox, CloudCog, Shield } from 'lucide-react';
+import { BrandLogo } from '../components/BrandLogo';
 
 export function Sources() {
   const sources = [
@@ -41,16 +42,14 @@ export function Sources() {
               
               <div className="p-6 border-b border-white/10 flex items-center justify-between relative z-10">
                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full border-2 border-sc-cyan flex flex-col items-center justify-center gap-0.5">
-                       <div className="w-1.5 h-1.5 bg-sc-cyan rounded-full"></div>
-                    </div>
+                     <BrandLogo variant="mark" className="h-8 w-8" />
                     <h2 className="font-black text-lg">Context Engine Health</h2>
                  </div>
                  <div className="flex items-center gap-2 text-xs font-black text-sc-cyan bg-sc-cyan/10 px-3 py-1.5 rounded-full uppercase tracking-wider border border-sc-cyan/20">
                     <Shield className="w-3.5 h-3.5" /> SOC2 Compliant · Data never trains public models
                  </div>
               </div>
-              <div className="p-8 relative z-10">
+               <div className="p-8 relative z-10 flex items-center justify-between gap-12">
                  <div className="space-y-8 max-w-3xl">
                     <div>
                        <div className="flex justify-between text-sm font-bold mb-3">
@@ -79,7 +78,10 @@ export function Sources() {
                           <div className="h-full bg-[#ffd3b6] w-[100%] animate-pulse"></div>
                        </div>
                     </div>
-                 </div>
+                  </div>
+                  <div className="hidden xl:flex w-[250px] min-h-[210px] flex-shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white p-6 shadow-[0_18px_50px_rgba(0,0,0,0.18)]">
+                     <BrandLogo variant="full" className="w-full" />
+                  </div>
               </div>
            </div>
        </div>

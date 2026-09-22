@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'wouter';
 import { Home, Inbox as InboxIcon, Settings, Target, Layers } from 'lucide-react';
-import { Logo } from '../App';
+import { BrandLogo } from './BrandLogo';
 
 export function Sidebar() {
   const [location] = useLocation();
@@ -15,7 +15,7 @@ export function Sidebar() {
   return (
     <div className="w-[260px] bg-sc-navy flex flex-col text-white flex-shrink-0">
        <div className="p-6 pb-2">
-          <Logo invert />
+          <BrandLogo variant="wordmark" invert className="h-9" />
        </div>
        <div className="px-4 flex-1 space-y-1 mt-6">
           <div className="text-[10px] font-black text-white/40 uppercase tracking-widest px-4 mb-3">Workspace</div>
