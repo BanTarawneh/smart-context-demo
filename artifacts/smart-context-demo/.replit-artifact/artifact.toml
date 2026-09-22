@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Smart Context Demo"
+description = "A polished, front-end-only product demo for Smart Context, showing how enterprise AI reads scattered information, builds context, researches gaps, and turns human-approved insight into action."
+version = "1.0.0"
+id = "artifacts/smart-context-demo"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24366
+
+[services.development]
+run = "pnpm --filter @workspace/smart-context-demo run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/smart-context-demo", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/smart-context-demo/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24366"
+BASE_PATH = "/"
