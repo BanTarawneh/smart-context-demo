@@ -6,6 +6,7 @@ import { Quotations } from './rfq/Quotations';
 import { Comparison } from './rfq/Comparison';
 import { Decision } from './rfq/Decision';
 import { Building2, Sparkles, Users, FileText, BarChart2, CheckCircle } from 'lucide-react';
+import { useLocale } from '../i18n/LocaleProvider';
 
 const tabs = [
   { id: 'workspace', label: 'Workspace', icon: Building2 },
@@ -17,6 +18,7 @@ const tabs = [
 ];
 
 export function OpportunityLayout({ params }: { params?: { tab?: string } }) {
+  const { t } = useLocale();
   const requestedTab = params?.tab || 'workspace';
   const tab = tabs.some((item) => item.id === requestedTab)
     ? requestedTab
@@ -28,16 +30,16 @@ export function OpportunityLayout({ params }: { params?: { tab?: string } }) {
     <div className="flex flex-col h-full space-y-5">
       <div className="flex items-center justify-between flex-shrink-0 mt-2 px-2">
         <div>
-          <h1 className="text-2xl font-black text-sc-navy tracking-tight">Northgate Industrial Pump Package</h1>
-          <p className="text-sc-muted font-bold text-xs uppercase tracking-widest mt-1">RFQ · Northgate Water Authority</p>
+          <h1 className="text-2xl font-black text-sc-navy tracking-tight">{t('Northgate Industrial Pump Package')}</h1>
+          <p className="text-sc-muted font-bold text-xs uppercase tracking-widest mt-1">{t('RFQ · Northgate Water Authority')}</p>
         </div>
       </div>
 
       <div className="flex gap-2 border-b border-sc-line pb-px px-2 flex-shrink-0 overflow-x-auto">
-        {tabs.map(t => (
-          <Link key={t.id} href={`/rfq/northgate/${t.id}`} className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${tab === t.id ? 'border-sc-blue text-sc-blue' : 'border-transparent text-sc-muted hover:text-sc-navy hover:border-sc-line'}`}>
-            <t.icon className="w-4 h-4" />
-            {t.label}
+        {tabs.map(item => (
+          <Link key={item.id} href={`/rfq/northgate/${item.id}`} className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${tab === item.id ? 'border-sc-blue text-sc-blue' : 'border-transparent text-sc-muted hover:text-sc-navy hover:border-sc-line'}`}>
+            <item.icon className="w-4 h-4" />
+            {t(item.label)}
           </Link>
         ))}
       </div>

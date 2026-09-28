@@ -22,6 +22,7 @@ import {
 import type { ReactNode } from 'react';
 import { Link } from 'wouter';
 import { BrandLogo } from './BrandLogo';
+import { useLocale } from '../i18n/LocaleProvider';
 
 export const STORY_TIMING = {
   sceneDurationMs: 6800,
@@ -72,6 +73,7 @@ function Reveal({ children, presentation, reduceMotion, delay = 0, className }: 
 }
 
 function SystemsVisual({ presentation, reduceMotion }: { presentation: boolean; reduceMotion: boolean }) {
+  const { t, isArabic } = useLocale();
   const systems = [
     { name: 'SAP ERP', icon: Database, color: '#68B6EB' },
     { name: 'Salesforce CRM', icon: Users, color: '#7FE1D0' },
@@ -99,7 +101,7 @@ function SystemsVisual({ presentation, reduceMotion }: { presentation: boolean; 
               <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5" style={{ color }}>
                 <Icon className="h-4 w-4" />
               </span>
-              <span className="text-xs font-black text-white sm:text-sm">{name}</span>
+               <span className="text-xs font-black text-white sm:text-sm">{t(name)}</span>
             </motion.div>
           ))}
         </div>
@@ -139,8 +141,8 @@ function SystemsVisual({ presentation, reduceMotion }: { presentation: boolean; 
             <circle cx="440" cy="180" r="27" fill="rgba(78,203,222,.13)" stroke="#4ECBDE" strokeOpacity=".5" />
             <circle cx="440" cy="180" r="7" fill="#4ECBDE" />
           </svg>
-          <div className="absolute bottom-2 right-0 rounded-full border border-sc-cyan/30 bg-sc-navy/70 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em] text-sc-cyan sm:bottom-5 sm:right-2">
-            One governed connection layer
+           <div className={`absolute bottom-2 rounded-full border border-sc-cyan/30 bg-sc-navy/70 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em] text-sc-cyan sm:bottom-5 ${isArabic ? 'left-2' : 'right-2'}`}>
+             {t('One governed connection layer')}
           </div>
         </div>
       </div>
@@ -149,6 +151,7 @@ function SystemsVisual({ presentation, reduceMotion }: { presentation: boolean; 
 }
 
 function ContextVisual({ reduceMotion }: { reduceMotion: boolean }) {
+  const { t } = useLocale();
   const nodes = [
     { x: 80, y: 70 }, { x: 270, y: 52 }, { x: 455, y: 95 }, { x: 120, y: 230 },
     { x: 330, y: 215 }, { x: 500, y: 265 }, { x: 185, y: 345 }, { x: 405, y: 375 },
@@ -195,7 +198,7 @@ function ContextVisual({ reduceMotion }: { reduceMotion: boolean }) {
           className="absolute left-1/2 top-1/2 flex h-32 w-32 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border border-sc-cyan/50 bg-[#10214E]/95 text-center shadow-[0_0_44px_rgba(78,203,222,.2)] sm:h-36 sm:w-36"
         >
           <Network className="h-7 w-7 text-sc-cyan" />
-          <span className="mt-2 max-w-24 text-xs font-black leading-4 text-white">Smart Context Engine</span>
+           <span className="mt-2 max-w-24 text-xs font-black leading-4 text-white">{t('Smart Context Engine')}</span>
         </motion.div>
         <div className="absolute bottom-0 left-0 right-0 flex flex-wrap justify-center gap-2">
           {['people', 'projects', 'suppliers', 'decisions'].map((label, index) => (
@@ -207,7 +210,7 @@ function ContextVisual({ reduceMotion }: { reduceMotion: boolean }) {
               transition={{ duration: reduceMotion ? 0 : STORY_TIMING.revealSeconds, delay: reduceMotion ? 0 : STORY_TIMING.auditDelaySeconds + index * STORY_TIMING.itemStaggerSeconds }}
               className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.13em] text-white/65"
             >
-              {label}
+               {t(label)}
             </motion.span>
           ))}
         </div>
@@ -242,6 +245,7 @@ function AgentMicroAnimation({ type, color, reduceMotion }: { type: string; colo
 }
 
 function AgentsVisual({ presentation, reduceMotion }: { presentation: boolean; reduceMotion: boolean }) {
+  const { t } = useLocale();
   return (
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
       {agentCards.map(({ title, description, icon: Icon, color, motionType }, index) => (
@@ -256,7 +260,7 @@ function AgentsVisual({ presentation, reduceMotion }: { presentation: boolean; r
         >
           <div className="flex items-start gap-3">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5" style={{ color }}><Icon className="h-5 w-5" /></span>
-            <div><h3 className="text-sm font-black text-white">{title}</h3><p className="mt-1 text-xs leading-5 text-white/55">{description}</p></div>
+            <div><h3 className="text-sm font-black text-white">{t(title)}</h3><p className="mt-1 text-xs leading-5 text-white/55">{t(description)}</p></div>
           </div>
           <AgentMicroAnimation type={motionType} color={color} reduceMotion={reduceMotion} />
         </motion.article>
@@ -266,21 +270,22 @@ function AgentsVisual({ presentation, reduceMotion }: { presentation: boolean; r
 }
 
 function GovernanceVisual({ reduceMotion }: { reduceMotion: boolean }) {
-  const typedLine = 'Clause 14 requires approval above $100,000';
+  const { t, isArabic } = useLocale();
+  const typedLine = t('Clause 14 requires approval above $100,000');
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       <div className="rounded-2xl border border-white/12 bg-white/[0.055] p-5 backdrop-blur-xl">
-        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-white/55"><SlidersHorizontal className="h-4 w-4 text-sc-cyan" /> Permissions</div>
+         <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-white/55"><SlidersHorizontal className="h-4 w-4 text-sc-cyan" /> {t('Permissions')}</div>
         <div className="mt-5 space-y-3">
           {['Read supplier history', 'Draft customer email', 'Send without approval'].map((label, index) => (
             <div key={label} className="flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-sc-navy/55 px-3 py-3">
-              <span className="text-xs font-bold text-white/75">{label}</span>
+               <span className="text-xs font-bold text-white/75">{t(label)}</span>
               <motion.span
                 animate={reduceMotion ? undefined : { backgroundColor: index === 2 ? ['#C9772C', '#7B8797', '#C9772C'] : ['#22896E', '#3BC29A', '#22896E'] }}
                 transition={reduceMotion ? undefined : { duration: STORY_TIMING.microLoopSeconds, repeat: Infinity, delay: index * STORY_TIMING.itemStaggerSeconds }}
                 className="relative h-5 w-9 shrink-0 rounded-full"
               >
-                <motion.span animate={reduceMotion ? undefined : { x: index === 2 ? [17, 1, 17] : [17, 17, 17] }} transition={reduceMotion ? undefined : { duration: STORY_TIMING.microLoopSeconds, repeat: Infinity, delay: index * STORY_TIMING.itemStaggerSeconds }} className="absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow" />
+                 <motion.span animate={reduceMotion ? undefined : { x: index === 2 ? (isArabic ? [-17, -1, -17] : [17, 1, 17]) : (isArabic ? [-17, -17, -17] : [17, 17, 17]) }} transition={reduceMotion ? undefined : { duration: STORY_TIMING.microLoopSeconds, repeat: Infinity, delay: index * STORY_TIMING.itemStaggerSeconds }} className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow ${isArabic ? 'right-0.5' : 'left-0.5'}`} />
               </motion.span>
             </div>
           ))}
@@ -288,14 +293,14 @@ function GovernanceVisual({ reduceMotion }: { reduceMotion: boolean }) {
       </div>
       <div className="grid gap-3">
         <div className="rounded-2xl border border-white/12 bg-white/[0.055] p-5 backdrop-blur-xl">
-          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-white/55"><ShieldCheck className="h-4 w-4 text-sc-green" /> Approval gate</div>
+           <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-white/55"><ShieldCheck className="h-4 w-4 text-sc-green" /> {t('Approval gate')}</div>
           <div className="mt-4 flex items-center gap-3">
             <motion.span initial={reduceMotion ? false : { scale: 0.7, opacity: 0 }} whileInView={{ scale: 1, opacity: 1 }} viewport={{ once: true }} transition={{ type: 'spring', stiffness: STORY_TIMING.springStiffness, damping: STORY_TIMING.springDamping }} className="flex h-10 w-10 items-center justify-center rounded-full bg-sc-green/15 text-sc-green"><Check className="h-5 w-5" /></motion.span>
-            <div><div className="text-xs font-black text-white">Human review required</div><div className="mt-1 text-[11px] text-white/50">No send without approval</div></div>
+             <div><div className="text-xs font-black text-white">{t('Human review required')}</div><div className="mt-1 text-[11px] text-white/50">{t('No send without approval')}</div></div>
           </div>
         </div>
         <div className="rounded-2xl border border-white/12 bg-white/[0.055] p-5 backdrop-blur-xl">
-          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-white/55"><FileText className="h-4 w-4 text-sc-cyan" /> Audit trail</div>
+           <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-white/55"><FileText className="h-4 w-4 text-sc-cyan" /> {t('Audit trail')}</div>
           <div className="mt-4 overflow-hidden whitespace-nowrap rounded-lg bg-sc-navy/65 px-3 py-2.5 font-mono text-[10px] text-sc-cyan">
             <motion.span
               initial={reduceMotion ? false : { width: 0 }}
@@ -307,11 +312,11 @@ function GovernanceVisual({ reduceMotion }: { reduceMotion: boolean }) {
               {typedLine}
             </motion.span>
           </div>
-          <div className="mt-3 flex items-center justify-between text-[10px] font-bold text-white/45"><span>Maya Haddad · 09:02</span><span>Immutable event</span></div>
+           <div className="mt-3 flex items-center justify-between text-[10px] font-bold text-white/45"><span>{t('Maya Haddad · 09:02')}</span><span>{t('Immutable event')}</span></div>
         </div>
         <div className="flex items-center justify-between rounded-2xl border border-white/12 bg-white/[0.055] px-5 py-4 backdrop-blur-xl">
-          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-white/55"><Pause className="h-4 w-4 text-sc-amber" /> Pause control</div>
-          <div className="relative h-6 w-11 rounded-full bg-sc-green/80 p-1"><motion.span animate={reduceMotion ? undefined : { x: [0, 20, 0] }} transition={reduceMotion ? undefined : { duration: STORY_TIMING.microLoopSeconds, repeat: Infinity }} className="block h-4 w-4 rounded-full bg-white shadow" /></div>
+           <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-white/55"><Pause className="h-4 w-4 text-sc-amber" /> {t('Pause control')}</div>
+           <div className="relative h-6 w-11 rounded-full bg-sc-green/80 p-1"><motion.span animate={reduceMotion ? undefined : { x: isArabic ? [20, 0, 20] : [0, 20, 0] }} transition={reduceMotion ? undefined : { duration: STORY_TIMING.microLoopSeconds, repeat: Infinity }} className={`block h-4 w-4 rounded-full bg-white shadow ${isArabic ? 'mr-auto' : ''}`} /></div>
         </div>
       </div>
     </div>
@@ -319,6 +324,7 @@ function GovernanceVisual({ reduceMotion }: { reduceMotion: boolean }) {
 }
 
 function PillarsVisual({ reduceMotion }: { reduceMotion: boolean }) {
+  const { t, isArabic } = useLocale();
   const pillars = [
     { label: 'Open source', description: 'Inspect the implementation.', icon: Code2, color: '#4ECBDE' },
     { label: 'Sovereign', description: 'Your infrastructure. Your data.', icon: House, color: '#80D9B5' },
@@ -339,10 +345,10 @@ function PillarsVisual({ reduceMotion }: { reduceMotion: boolean }) {
           <div className="absolute -right-10 -top-10 h-36 w-36 rounded-full blur-3xl" style={{ backgroundColor: `${color}18` }} aria-hidden="true" />
           <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl border border-white/15 bg-white/5" style={{ color }}>
             <Icon className="h-7 w-7" />
-            {label === 'Sovereign' && <LockKeyhole className="absolute -bottom-2 -right-2 h-4 w-4 rounded-full bg-sc-navy p-0.5 text-white" />}
+             {label === 'Sovereign' && <LockKeyhole className={`absolute -bottom-2 h-4 w-4 rounded-full bg-sc-navy p-0.5 text-white ${isArabic ? '-left-2' : '-right-2'}`} />}
           </div>
-          <h3 className="relative mt-8 text-xl font-black text-white">{label}</h3>
-          <p className="relative mt-2 text-sm leading-6 text-white/55">{description}</p>
+           <h3 className="relative mt-8 text-xl font-black text-white">{t(label)}</h3>
+           <p className="relative mt-2 text-sm leading-6 text-white/55">{t(description)}</p>
         </motion.article>
       ))}
     </div>
@@ -367,6 +373,7 @@ export function PlatformScene({
   presentation: boolean;
   reduceMotion: boolean;
 }) {
+  const { t } = useLocale();
   if (index === 5) {
     return (
       <section className="relative flex min-h-[100dvh] snap-start items-center justify-center overflow-hidden px-5 py-28 text-center sm:px-10">
@@ -387,14 +394,14 @@ export function PlatformScene({
           <div className="relative">
             <div className="mb-8 flex justify-center"><BrandLogo variant="wordmark" invert className="h-11" testId="link-platform-end-brand-home" /></div>
             <div className="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-2xl border border-sc-cyan/35 bg-sc-cyan/10 text-sc-cyan"><Sparkles className="h-6 w-6" /></div>
-            <div className="text-xs font-black uppercase tracking-[0.2em] text-sc-cyan">Smart Context</div>
+             <div className="text-xs font-black uppercase tracking-[0.2em] text-sc-cyan">{t('Smart Context')}</div>
             <h1 className="mt-5 text-4xl font-black leading-[1.02] tracking-[-0.05em] text-white sm:text-6xl lg:text-7xl">
-              Your enterprise already has the knowledge.
-              <span className="mt-2 block text-white/60">Now your agents have the context to use it.</span>
+               {t('Your enterprise already has the knowledge.')}
+               <span className="mt-2 block text-white/60">{t('Now your agents have the context to use it.')}</span>
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-white/55 sm:text-lg">Connected systems. Grounded decisions. Agent actions under your control.</p>
+             <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-white/55 sm:text-lg">{t('Connected systems. Grounded decisions. Agent actions under your control.')}</p>
             <Link href="/context-graph" data-testid="link-platform-rfq-cta" className="mt-10 inline-flex items-center rounded-xl bg-sc-cyan px-6 py-4 text-sm font-black text-sc-navy shadow-[0_12px_36px_rgba(78,203,222,.19)] transition-transform hover:-translate-y-0.5">
-              See it on a real RFQ <ArrowRight className="ml-2 h-4 w-4" />
+               {t('See it on a real RFQ')} <ArrowRight className="ml-2 h-4 w-4 rtl-flip-icon" />
             </Link>
           </div>
         </motion.div>
@@ -409,12 +416,12 @@ export function PlatformScene({
       <div className="relative grid w-full items-center gap-8 lg:grid-cols-[.68fr_1.32fr] lg:gap-14">
         <Reveal presentation={presentation} reduceMotion={reduceMotion}>
           <div className="inline-flex items-center gap-2 rounded-full border border-sc-cyan/25 bg-white/[0.045] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-sc-cyan">
-            <CircleDot className="h-3.5 w-3.5" /> {meta.eyebrow}
+             <CircleDot className="h-3.5 w-3.5" /> {t(meta.eyebrow)}
           </div>
-          <h2 className="mt-5 text-4xl font-black leading-[1.02] tracking-[-0.05em] text-white sm:text-5xl lg:text-6xl">{meta.title}</h2>
-          <p className="mt-5 max-w-xl text-sm leading-7 text-white/58 sm:text-base">{meta.copy}</p>
+           <h2 className="mt-5 text-4xl font-black leading-[1.02] tracking-[-0.05em] text-white sm:text-5xl lg:text-6xl">{t(meta.title)}</h2>
+           <p className="mt-5 max-w-xl text-sm leading-7 text-white/58 sm:text-base">{t(meta.copy)}</p>
           <div className="mt-7 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/35">
-            <span className="h-px w-8 bg-sc-cyan/70" /> Sovereign context layer
+             <span className="h-px w-8 bg-sc-cyan/70" /> {t('Sovereign context layer')}
           </div>
         </Reveal>
         <Reveal presentation={presentation} reduceMotion={reduceMotion} delay={0.12}>

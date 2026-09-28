@@ -1,7 +1,9 @@
 import { Search } from 'lucide-react';
 import { Link } from 'wouter';
+import { useLocale } from '../i18n/LocaleProvider';
 
 export function Inbox() {
+  const { t, isArabic } = useLocale();
   const mailRows = [
     ['Northgate Water Authority', 'RFQ — Industrial Pump Package', '09:02', true],
     ['Flow Group', 'FW: RFX 5500813926', '08:57', false],
@@ -21,10 +23,10 @@ export function Inbox() {
     <div className="max-w-5xl mx-auto h-full pb-6">
        <div className="h-full flex flex-col bg-white rounded-xl shadow-[0_10px_30px_rgba(11,20,55,0.08)] border border-sc-line overflow-hidden mt-4">
           <div className="p-5 border-b border-sc-line flex items-center justify-between bg-[#fbfdff]">
-             <h1 className="text-lg font-black text-sc-navy">Inbox · RFQ Intake</h1>
+             <h1 className="text-lg font-black text-sc-navy">{t('Inbox · RFQ Intake')}</h1>
              <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-sc-muted" />
-                <input type="text" placeholder="Search mail" className="pl-9 pr-4 py-2 bg-white border border-sc-line rounded-lg text-sm focus:outline-none focus:border-sc-blue focus:ring-1 focus:ring-sc-blue w-[320px] font-medium placeholder:font-bold placeholder:text-sc-muted" />
+                <Search className={`w-4 h-4 absolute top-1/2 -translate-y-1/2 text-sc-muted ${isArabic ? 'right-3' : 'left-3'}`} />
+                <input type="text" aria-label={t('Search mail')} placeholder={t('Search mail')} className={`${isArabic ? 'pr-9 pl-4' : 'pl-9 pr-4'} py-2 bg-white border border-sc-line rounded-lg text-sm focus:outline-none focus:border-sc-blue focus:ring-1 focus:ring-sc-blue w-[320px] font-medium placeholder:font-bold placeholder:text-sc-muted`} />
              </div>
           </div>
           <div className="flex-1 overflow-y-auto">
@@ -34,10 +36,10 @@ export function Inbox() {
                       <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${isNorthgate ? 'bg-sc-cyan' : 'bg-transparent'}`}></div>
                       <div className="flex-1 min-w-0">
                          <div className="flex justify-between items-center mb-1">
-                            <span className={`font-bold text-sm text-sc-navy ${isNorthgate ? 'font-black' : ''}`}>{sender as string}</span>
+                            <span className={`font-bold text-sm text-sc-navy ${isNorthgate ? 'font-black' : ''}`}>{t(sender as string)}</span>
                             <span className="text-xs font-bold text-sc-muted tabular-nums">{time as string}</span>
                          </div>
-                         <div className="text-sm text-sc-muted truncate font-medium">{subject as string}</div>
+                         <div className="text-sm text-sc-muted truncate font-medium">{t(subject as string)}</div>
                       </div>
                    </div>
                 );

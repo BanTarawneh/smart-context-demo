@@ -11,10 +11,12 @@ import { ContextGraph } from './pages/ContextGraph';
 import { AgentControlCenter } from './pages/AgentControlCenter';
 import { PlatformOverview } from './pages/PlatformOverview';
 import { useEffect, useState } from 'react';
+import { LocaleProvider, useLocale } from './i18n/LocaleProvider';
 
 function AppContent() {
   const [location] = useLocation();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const { t } = useLocale();
 
   // Clear any existing custom cursors or styles from the body that might be left over if hot-reloading
   useEffect(() => {
@@ -43,7 +45,7 @@ function AppContent() {
       {mobileNavOpen && (
         <button
           type="button"
-          aria-label="Close navigation"
+          aria-label={t('Close navigation')}
           onClick={() => setMobileNavOpen(false)}
           className="fixed inset-0 z-40 bg-sc-navy/55 backdrop-blur-[1px] lg:hidden"
         />
@@ -61,7 +63,7 @@ function AppContent() {
             <Route path="/rfq/northgate" component={() => <OpportunityLayout params={{ tab: 'workspace' }} />} />
             <Route path="/sources" component={Sources} />
             <Route>
-              <div className="p-8 text-center text-sc-muted font-bold">Page not found</div>
+              <div className="p-8 text-center text-sc-muted font-bold">{t('Page not found')}</div>
             </Route>
           </Switch>
         </main>
@@ -72,8 +74,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <DemoProvider>
-      <AppContent />
-    </DemoProvider>
+    <LocaleProvider>
+      <DemoProvider>
+        <AppContent />
+      </DemoProvider>
+    </LocaleProvider>
   );
 }

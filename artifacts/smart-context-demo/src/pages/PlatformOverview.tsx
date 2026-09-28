@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'wouter';
 import { PlatformScene, STORY_TIMING } from '../components/PlatformScenes';
 import { BrandLogo } from '../components/BrandLogo';
+import { LanguageToggle } from '../components/LanguageToggle';
+import { useLocale } from '../i18n/LocaleProvider';
 
 const SCENE_COUNT = 6;
 
@@ -12,6 +14,7 @@ function startsInAutoplay() {
 }
 
 export function PlatformOverview() {
+  const { t, isArabic } = useLocale();
   const autoplayOnLoad = useRef(startsInAutoplay()).current;
   const [presentationMode, setPresentationMode] = useState(autoplayOnLoad);
   const [playing, setPlaying] = useState(autoplayOnLoad);
@@ -87,40 +90,47 @@ export function PlatformOverview() {
         <header className="fixed left-0 right-0 top-0 z-30 border-b border-white/10 bg-sc-navy/80 px-5 py-4 backdrop-blur-xl sm:px-8">
           <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-4">
             <BrandLogo variant="wordmark" invert className="h-7" testId="link-platform-brand-home" linkClassName="shrink-0" />
-            <div className="hidden items-center gap-1.5 md:flex" aria-label={`Platform story, scene ${activeScene + 1} of ${SCENE_COUNT}`}>
+            <div className="hidden items-center gap-1.5 md:flex" aria-label={t('Platform story, scene {{current}} of {{total}}', { current: activeScene + 1, total: SCENE_COUNT })}>
               {Array.from({ length: SCENE_COUNT }, (_, index) => (
                 <span key={index} className={`h-1 w-7 rounded-full transition-colors ${index === activeScene ? 'bg-sc-cyan' : index < activeScene ? 'bg-sc-green/80' : 'bg-white/15'}`} />
               ))}
             </div>
+            <LanguageToggle dark />
             <button
               type="button"
               onClick={() => startPresentation()}
               data-testid="button-play-platform-story"
               className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-sc-cyan/35 bg-sc-cyan/10 px-3 py-2 text-xs font-black text-sc-cyan transition-colors hover:bg-sc-cyan/20"
             >
-              <Play className="h-3.5 w-3.5 fill-current" /> Play story <span className="hidden font-mono text-[10px] text-white/45 sm:inline">P</span>
+              <Play className="h-3.5 w-3.5 fill-current" /> {t('Play story')} <span className="hidden font-mono text-[10px] text-white/45 sm:inline">P</span>
             </button>
           </div>
         </header>
       )}
 
       {presentationMode && playing && (
-        <BrandLogo
-          variant="wordmark"
-          invert
-          className="h-6"
-          testId="link-platform-presentation-home"
-          linkClassName="absolute left-5 top-5 z-30 border border-white/10 bg-sc-navy/70 p-2 backdrop-blur-md sm:left-8 sm:top-6"
-        />
+        <>
+          <BrandLogo
+            variant="wordmark"
+            invert
+            className="h-6"
+            testId="link-platform-presentation-home"
+            linkClassName="absolute left-5 top-5 z-30 border border-white/10 bg-sc-navy/70 p-2 backdrop-blur-md sm:left-8 sm:top-6"
+          />
+          <div className="absolute right-5 top-5 z-30 sm:right-8 sm:top-6">
+            <LanguageToggle dark />
+          </div>
+        </>
       )}
 
       {presentationMode && !playing && (
         <div className="absolute left-0 right-0 top-0 z-30 flex items-center justify-between gap-4 border-b border-white/10 bg-sc-navy/75 px-5 py-4 backdrop-blur-xl sm:px-8">
           <Link href="/" data-testid="link-platform-exit" className="inline-flex items-center gap-2 text-xs font-black text-white/60 hover:text-white">
-            <ArrowLeft className="h-4 w-4" /> Exit story
+             <ArrowLeft className={`h-4 w-4 ${isArabic ? 'rtl-flip-icon' : ''}`} /> {t('Exit story')}
           </Link>
+          <LanguageToggle dark />
           <button type="button" onClick={() => startPresentation(0)} data-testid="button-replay-platform-story" className="inline-flex items-center gap-2 rounded-lg border border-sc-cyan/35 bg-sc-cyan/10 px-3 py-2 text-xs font-black text-sc-cyan hover:bg-sc-cyan/20">
-            <RotateCcw className="h-3.5 w-3.5" /> Replay story
+             <RotateCcw className="h-3.5 w-3.5" /> {t('Replay story')}
           </button>
         </div>
       )}

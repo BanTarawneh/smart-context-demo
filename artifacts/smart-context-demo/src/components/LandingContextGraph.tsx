@@ -10,6 +10,7 @@ import {
   type MotionValue,
 } from 'framer-motion';
 import { useCallback, useEffect, useMemo, useState, type PointerEvent } from 'react';
+import { useLocale } from '../i18n/LocaleProvider';
 
 const GRAPH_TIMING = {
   highlightIntervalSeconds: 3,
@@ -265,6 +266,7 @@ function GraphEdgeView({
 }
 
 export function LandingContextGraph() {
+  const { t, isArabic, formatNumber } = useLocale();
   const reduceMotion = useReducedMotion() ?? false;
   const [compact, setCompact] = useState(() => window.matchMedia('(max-width: 639px)').matches);
   const [cycleIndex, setCycleIndex] = useState(0);
@@ -282,15 +284,18 @@ export function LandingContextGraph() {
   const cycle = highlightCycle[cycleIndex];
   const activeFocusId = hoveredNodeId ?? cycle.sourceId;
   const activeNode = nodeBlueprints.find((node) => node.id === hoveredNodeId);
+  const graphSize = compact ? { width: 500, height: 520, center: { x: 250, y: 249 } } : { width: 800, height: 410, center: { x: 400, y: 207 } };
   const activeNodes = useMemo(
-    () => nodeBlueprints.map((node) => ({ ...node, ...(compact ? node.compact : node.wide) })),
-    [compact],
+    () => nodeBlueprints.map((node) => {
+      const point = compact ? node.compact : node.wide;
+      return { ...node, ...point, x: isArabic ? graphSize.width - point.x : point.x };
+    }),
+    [compact, graphSize.width, isArabic],
   );
   const activePositions = useMemo(
     () => new Map(activeNodes.map((node) => [node.id, node])),
     [activeNodes],
   );
-  const graphSize = compact ? { width: 500, height: 520, center: { x: 250, y: 249 } } : { width: 800, height: 410, center: { x: 400, y: 207 } };
   const nodeOffsets = useMemo(() => new Map(activeNodes.map((node) => [
     node.id,
     {
@@ -392,9 +397,9 @@ export function LandingContextGraph() {
     const y = ((event.clientY - rect.top) / rect.height) * 2 - 1;
     tiltXRaw.set(-y * GRAPH_TIMING.tiltDegrees);
     tiltYRaw.set(x * GRAPH_TIMING.tiltDegrees);
-    graphXRaw.set(x * GRAPH_TIMING.graphParallaxPixels);
+    graphXRaw.set(x * GRAPH_TIMING.graphParallaxPixels * (isArabic ? -1 : 1));
     graphYRaw.set(y * GRAPH_TIMING.graphParallaxPixels);
-  }, [graphXRaw, graphYRaw, reduceMotion, tiltXRaw, tiltYRaw]);
+  }, [graphXRaw, graphYRaw, isArabic, reduceMotion, tiltXRaw, tiltYRaw]);
 
   const handlePointerLeave = useCallback(() => {
     tiltXRaw.set(0);
@@ -408,12 +413,13 @@ export function LandingContextGraph() {
   const tooltip = activeNode && activePositions.get(activeNode.id);
   const tooltipWidth = compact ? 194 : 206;
   const tooltipX = tooltip ? Math.max(8, Math.min(graphSize.width - tooltipWidth - 8, tooltip.x - tooltipWidth / 2)) : 0;
+  const tooltipLines = activeNode ? wordWrap(t(activeNode.fact), isArabic ? (compact ? 22 : 26) : (compact ? 30 : 34)) : [];
+  const tooltipHeight = Math.max(52, 30 + tooltipLines.length * 13);
   const tooltipY = tooltip
     ? tooltip.y < graphSize.height / 2
-      ? Math.min(graphSize.height - 58, tooltip.y + tooltip.radius + 28)
-      : Math.max(8, tooltip.y - tooltip.radius - 62)
+      ? Math.min(graphSize.height - tooltipHeight - 6, tooltip.y + tooltip.radius + 28)
+      : Math.max(8, tooltip.y - tooltip.radius - tooltipHeight - 10)
     : 0;
-  const tooltipLines = activeNode ? wordWrap(activeNode.fact, compact ? 30 : 34) : [];
 
   return (
     <div className="relative">
@@ -452,13 +458,13 @@ export function LandingContextGraph() {
                 transition={reduceMotion ? undefined : { duration: GRAPH_TIMING.liveIndicatorDurationSeconds, repeat: Infinity, ease: 'easeInOut' }}
                 aria-hidden="true"
               />
-              <span>Live context graph</span>
+              <span>{t('Live context graph')}</span>
             </div>
-            <div data-testid="text-preview-status" className="mt-1.5 text-sm font-black text-white sm:text-base">RFQ decision context</div>
+            <div data-testid="text-preview-status" className="mt-1.5 text-sm font-black text-white sm:text-base">{t('RFQ decision context')}</div>
           </div>
           <div className="shrink-0 rounded-lg border border-white/10 bg-white/[0.055] px-2.5 py-2 font-mono text-[9px] font-bold text-white/70 shadow-inner sm:text-[10px]">
-            <span className="tabular-nums text-white">{entityCount}</span> entities <span className="mx-1 text-white/25">·</span>
-            <span className="tabular-nums text-white">{linkCount}</span> links
+            <span className="tabular-nums text-white">{formatNumber(entityCount)}</span> {t('entities')} <span className="mx-1 text-white/25">·</span>
+            <span className="tabular-nums text-white">{formatNumber(linkCount)}</span> {t('links')}
           </div>
         </div>
 
@@ -467,7 +473,7 @@ export function LandingContextGraph() {
             viewBox={`0 0 ${graphSize.width} ${graphSize.height}`}
             preserveAspectRatio="xMidYMid meet"
             role="group"
-            aria-label="Connected systems, suppliers, evidence, and metrics around the Industrial Pump Package RFQ"
+            aria-label={t('Connected systems, suppliers, evidence, and metrics around the Industrial Pump Package RFQ')}
             className="h-full w-full overflow-visible"
             style={reduceMotion ? undefined : { x: graphX, y: graphY }}
           >
@@ -484,7 +490,7 @@ export function LandingContextGraph() {
             </defs>
 
             <motion.g
-              animate={reduceMotion ? undefined : { x: [-GRAPH_TIMING.graphSwayPixels, GRAPH_TIMING.graphSwayPixels, -GRAPH_TIMING.graphSwayPixels] }}
+              animate={reduceMotion ? undefined : { x: isArabic ? [GRAPH_TIMING.graphSwayPixels, -GRAPH_TIMING.graphSwayPixels, GRAPH_TIMING.graphSwayPixels] : [-GRAPH_TIMING.graphSwayPixels, GRAPH_TIMING.graphSwayPixels, -GRAPH_TIMING.graphSwayPixels] }}
               transition={reduceMotion ? undefined : { duration: GRAPH_TIMING.graphSwayDurationSeconds, repeat: Infinity, ease: 'easeInOut' }}
             >
 
@@ -510,7 +516,7 @@ export function LandingContextGraph() {
                 return (
                   <GraphEdgeView
                     key={edge.id}
-                    edge={edge}
+                    edge={isArabic ? { ...edge, bend: -(edge.bend ?? 0) } : edge}
                     from={from}
                     to={to}
                     offsets={nodeOffsets}
@@ -533,7 +539,8 @@ export function LandingContextGraph() {
               const entryDelay = isOuter
                 ? GRAPH_TIMING.outerNodeDelaySeconds + Math.max(0, index - 6) * GRAPH_TIMING.outerNodeStaggerSeconds
                 : GRAPH_TIMING.innerNodeDelaySeconds + Math.max(0, index - 1) * GRAPH_TIMING.innerNodeStaggerSeconds;
-              const labelWidth = Math.max(42, node.label.length * (compact ? 8.5 : 7.2) + (compact ? 18 : 15));
+              const visibleLabel = t(node.label);
+              const labelWidth = Math.max(42, visibleLabel.length * (compact ? (isArabic ? 10 : 8.5) : (isArabic ? 8.7 : 7.2)) + (compact ? 18 : 15));
               const labelY = node.labelSide === 'above' ? -node.radius - 14 : node.radius + 15;
               return (
                 <g key={node.id} transform={`translate(${node.x} ${node.y})`}>
@@ -550,7 +557,7 @@ export function LandingContextGraph() {
                     <g
                       role="button"
                       tabIndex={0}
-                      aria-label={`${node.label}. Source: ${node.source}. ${node.fact}`}
+                      aria-label={`${visibleLabel}. ${t('Source:')} ${node.source}. ${t(node.fact)}`}
                       data-testid={`hero-graph-node-${node.id}`}
                       onMouseEnter={() => setHovered(node.id)}
                       onMouseLeave={() => setHovered(null)}
@@ -573,7 +580,7 @@ export function LandingContextGraph() {
                         x={-labelWidth / 2}
                         y={labelY - (compact ? 11 : 10)}
                         width={labelWidth}
-                        height={compact ? 22 : 20}
+                        height={isArabic ? 25 : compact ? 22 : 20}
                         rx={compact ? 8 : 7}
                         fill="rgba(9, 20, 46, .78)"
                         stroke={palette.color}
@@ -589,7 +596,7 @@ export function LandingContextGraph() {
                         fontWeight="800"
                         letterSpacing=".1"
                       >
-                        {node.label}
+                        {visibleLabel}
                       </text>
                     </g>
                   </motion.g>
@@ -632,7 +639,7 @@ export function LandingContextGraph() {
                   <g
                     role="button"
                     tabIndex={0}
-                    aria-label="Industrial Pump Package RFQ. Source: Smart Context. Central procurement decision."
+                    aria-label={t('Industrial Pump Package RFQ. Source: Smart Context. Central procurement decision.')}
                     data-testid="hero-graph-node-rfq"
                     onMouseEnter={() => setHovered('rfq')}
                     onMouseLeave={() => setHovered(null)}
@@ -660,7 +667,7 @@ export function LandingContextGraph() {
 
             {tooltip && activeNode && (
               <g className="pointer-events-none" transform={`translate(${tooltipX} ${tooltipY})`} aria-hidden="true">
-                <rect width={tooltipWidth} height="52" rx="10" fill="rgba(7, 17, 41, .96)" stroke={nodePalette[activeNode.kind].color} strokeOpacity=".54" />
+                <rect width={tooltipWidth} height={tooltipHeight} rx="10" fill="rgba(7, 17, 41, .96)" stroke={nodePalette[activeNode.kind].color} strokeOpacity=".54" />
                 <text x="11" y="16" fill={nodePalette[activeNode.kind].color} fontSize="9.5" fontWeight="900" letterSpacing=".8">
                   {activeNode.source.toUpperCase()}
                 </text>
@@ -704,7 +711,7 @@ export function LandingContextGraph() {
                 }}
                 aria-hidden="true"
               />
-              <span>Synced just now</span>
+              <span>{t('Synced just now')}</span>
             </div>
           </div>
         </div>

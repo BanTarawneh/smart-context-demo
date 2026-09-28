@@ -1,6 +1,7 @@
 import { animate, motion, motionValue, useMotionValue, useMotionValueEvent, useReducedMotion, useTransform, type MotionValue } from 'framer-motion';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { graphEdges, graphNodes, traceSteps, type GraphEdge, type GraphNode } from '../pages/context-graph-data';
+import { useLocale } from '../i18n/LocaleProvider';
 
 const VIEWBOX_WIDTH = 1000;
 const VIEWBOX_HEIGHT = 760;
@@ -129,6 +130,9 @@ function GraphEdgeView({
   isTraceActive,
   isTraceComplete,
   reduceMotion,
+  displayXPositions,
+  isArabic,
+  t,
 }: {
   edge: GraphEdge;
   nodeMap: Map<string, GraphNode>;
@@ -141,6 +145,9 @@ function GraphEdgeView({
   isTraceActive: boolean;
   isTraceComplete: boolean;
   reduceMotion: boolean;
+  displayXPositions: Map<string, MotionValue<number>>;
+  isArabic: boolean;
+  t: (key: string) => string;
 }) {
   const pathRef = useRef<SVGPathElement>(null);
   const labelX = useMotionValue(0);
@@ -155,12 +162,14 @@ function GraphEdgeView({
   const to = nodeMap.get(edge.to)!;
   const fromPosition = nodePositions.get(edge.from)!;
   const toPosition = nodePositions.get(edge.to)!;
+  const fromDisplayX = displayXPositions.get(edge.from)!;
+  const toDisplayX = displayXPositions.get(edge.to)!;
   const fromOffset = nodeOffsets.get(edge.from)!;
   const toOffset = nodeOffsets.get(edge.to)!;
   const d = useTransform(
-    [fromPosition.x, fromPosition.y, toPosition.x, toPosition.y, fromOffset, toOffset],
+    [fromDisplayX, fromPosition.y, toDisplayX, toPosition.y, fromOffset, toOffset],
     (latest: number[]) => edgePath(
-      edge,
+      { ...edge, bend: isArabic ? -(edge.bend ?? 0) : edge.bend },
       from,
       to,
       latest[0],
@@ -169,7 +178,8 @@ function GraphEdgeView({
       latest[3] + latest[5],
     ),
   );
-  const edgeLabelWidth = Math.max(66, edge.label.length * 6.4 + 22);
+  const visibleEdgeLabel = t(edge.label);
+  const edgeLabelWidth = Math.max(66, visibleEdgeLabel.length * (isArabic ? 7.1 : 6.4) + 22);
   const edgeColor = isTraceActive ? '#4EE1DE' : isTraceComplete ? '#2FA9B8' : isHovered || isSelected ? '#23B6C4' : '#AEBCCC';
 
   const updateLabelPosition = useCallback(() => {
@@ -188,7 +198,7 @@ function GraphEdgeView({
     const nodePoints = graphNodes.map((node) => ({
       node,
       point: {
-        x: nodePositions.get(node.id)!.x.get(),
+        x: displayXPositions.get(node.id)!.get(),
         y: nodePositions.get(node.id)!.y.get() + nodeOffsets.get(node.id)!.get(),
       },
     }));
@@ -211,7 +221,7 @@ function GraphEdgeView({
     labelX.set(point.x);
     labelY.set(point.y);
     labelOpacity.set(selectedPoint || edgeHoveredRef.current ? 1 : 0);
-  }, [edgeLabelWidth, labelOpacity, labelX, labelY, nodeOffsets, nodePositions]);
+  }, [displayXPositions, edgeLabelWidth, labelOpacity, labelX, labelY, nodeOffsets, nodePositions, t]);
 
   useMotionValueEvent(d, 'change', updateLabelPosition);
   useLayoutEffect(() => {
@@ -237,7 +247,7 @@ function GraphEdgeView({
       />
       <motion.g className="pointer-events-none" style={{ x: labelX, y: labelY, opacity: labelOpacity }}>
         <rect x={-edgeLabelWidth / 2} y="-12" width={edgeLabelWidth} height="24" rx="12" fill="#FFFFFF" stroke={isTraceActive ? '#8BE6E4' : '#DDE7EF'} strokeWidth="1" />
-        <text y="3.5" textAnchor="middle" fontSize="11" fontWeight="800" fill={isTraceActive ? '#087C85' : '#52647B'}>{edge.label}</text>
+        <text y="3.5" textAnchor="middle" fontSize="11" fontWeight="800" fill={isTraceActive ? '#087C85' : '#52647B'} direction={isArabic ? 'rtl' : 'ltr'} unicodeBidi="plaintext">{visibleEdgeLabel}</text>
       </motion.g>
       {edge.flow && !reduceMotion && (
         <circle r={isTraceActive ? 4 : 2.5} fill={isTraceActive ? '#E6FFFF' : '#65DAE1'} className={isTraceActive ? 'sc-flow-particle is-tracing' : 'sc-flow-particle'} aria-hidden="true">
@@ -271,6 +281,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
   onStopTrace,
   layoutLocked,
 }, ref) {
+  const { t, isArabic } = useLocale();
   const reduceMotion = useReducedMotion() ?? false;
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -280,6 +291,10 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
     const position = clampPosition(node, savedLayout[node.id] ?? { x: node.x, y: node.y });
     return [node.id, { x: motionValue(position.x), y: motionValue(position.y) }];
   })), [savedLayout]);
+  const displayXPositions = useMemo(() => new Map(graphNodes.map((node) => {
+    const rawX = nodePositions.get(node.id)!.x.get();
+    return [node.id, motionValue(isArabic ? VIEWBOX_WIDTH - rawX : rawX)];
+  })), [isArabic, nodePositions]);
   const nodeOffsets = useMemo(() => new Map(graphNodes.map((node) => [node.id, motionValue(0)])), []);
   const svgRef = useRef<SVGSVGElement>(null);
   const activeDragRef = useRef<ActiveDrag | null>(null);
@@ -287,6 +302,16 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
   const suppressClickTimerRef = useRef<number | null>(null);
   const floatControlsRef = useRef(new Map<string, { stop: () => void }>());
   const settleControlsRef = useRef(new Map<string, Array<{ stop: () => void }>>());
+
+  useEffect(() => {
+    const subscriptions = graphNodes.map((node) => {
+      const source = nodePositions.get(node.id)!.x;
+      const destination = displayXPositions.get(node.id)!;
+      destination.set(isArabic ? VIEWBOX_WIDTH - source.get() : source.get());
+      return source.on('change', (x) => destination.set(isArabic ? VIEWBOX_WIDTH - x : x));
+    });
+    return () => subscriptions.forEach((unsubscribe) => unsubscribe());
+  }, [displayXPositions, isArabic, nodePositions]);
 
   const saveLayout = useCallback(() => {
     const layout: SavedLayout = {};
@@ -426,18 +451,18 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
     }
     const elapsedSeconds = Math.max(0.001, (event.timeStamp - drag.lastTime) / 1000);
     drag.velocity = {
-      x: (svgPoint.x - drag.lastSvg.x) / elapsedSeconds,
+      x: (svgPoint.x - drag.lastSvg.x) / elapsedSeconds * (isArabic ? -1 : 1),
       y: (svgPoint.y - drag.lastSvg.y) / elapsedSeconds,
     };
     drag.lastSvg = svgPoint;
     drag.lastTime = event.timeStamp;
     const position = clampPosition(node, {
-      x: drag.startPosition.x + svgPoint.x - drag.startSvg.x,
+      x: drag.startPosition.x + (svgPoint.x - drag.startSvg.x) * (isArabic ? -1 : 1),
       y: drag.startPosition.y + svgPoint.y - drag.startSvg.y,
     });
     nodePositions.get(node.id)!.x.set(position.x);
     nodePositions.get(node.id)!.y.set(position.y);
-  }, [nodeMap, nodePositions, toSvgPoint]);
+  }, [isArabic, nodeMap, nodePositions, toSvgPoint]);
 
   const finishPointer = useCallback((event: ReactPointerEvent<SVGSVGElement>) => {
     const drag = activeDragRef.current;
@@ -454,7 +479,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
 
     const finalSvg = toSvgPoint(event) ?? drag.lastSvg;
     const position = clampPosition(node, {
-      x: drag.startPosition.x + finalSvg.x - drag.startSvg.x,
+      x: drag.startPosition.x + (finalSvg.x - drag.startSvg.x) * (isArabic ? -1 : 1),
       y: drag.startPosition.y + finalSvg.y - drag.startSvg.y,
     });
     const target = clampPosition(node, {
@@ -473,7 +498,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
     if (event.pointerType === 'touch') setHoveredId(null);
     settleNode(node, target);
     startFloat(node, graphNodes.indexOf(node));
-  }, [nodeMap, nodePositions, onSelect, onStopTrace, settleNode, startFloat, toSvgPoint]);
+  }, [isArabic, nodeMap, nodePositions, onSelect, onStopTrace, settleNode, startFloat, toSvgPoint]);
 
   const handleNodeClick = useCallback((event: React.MouseEvent<SVGGElement>, node: GraphNode) => {
     if (suppressClickRef.current === node.id) {
@@ -512,7 +537,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
         onPointerCancel={finishPointer}
         className="block h-auto min-w-[900px] w-full"
         role="img"
-        aria-label="Interactive context graph with systems, enterprise entities, evidence, and labeled relationships"
+        aria-label={t('Interactive context graph with systems, enterprise entities, evidence, and labeled relationships')}
       >
         <defs>
           <pattern id="graph-dot-grid" width="24" height="24" patternUnits="userSpaceOnUse">
@@ -550,9 +575,9 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
         </defs>
         <rect width={VIEWBOX_WIDTH} height={VIEWBOX_HEIGHT} fill="url(#graph-dot-grid)" />
         <ellipse cx="490" cy="380" rx="250" ry="350" fill="url(#graph-center-glow)" />
-        <text x="44" y="42" className="sc-graph-column-label">SYSTEMS</text>
-        <text x="385" y="42" className="sc-graph-column-label">BUSINESS CONTEXT</text>
-        <text x="770" y="42" className="sc-graph-column-label">EVIDENCE</text>
+        <text x={isArabic ? VIEWBOX_WIDTH - 44 : 44} y="42" textAnchor={isArabic ? 'end' : 'start'} className="sc-graph-column-label" direction={isArabic ? 'rtl' : 'ltr'}>{t('SYSTEMS')}</text>
+        <text x={isArabic ? VIEWBOX_WIDTH - 385 : 385} y="42" textAnchor={isArabic ? 'end' : 'start'} className="sc-graph-column-label" direction={isArabic ? 'rtl' : 'ltr'}>{t('BUSINESS CONTEXT')}</text>
+        <text x={isArabic ? VIEWBOX_WIDTH - 770 : 770} y="42" textAnchor={isArabic ? 'end' : 'start'} className="sc-graph-column-label" direction={isArabic ? 'rtl' : 'ltr'}>{t('EVIDENCE')}</text>
 
         {graphEdges.map((edge, index) => {
           const incident = edge.from === selectedId || edge.to === selectedId;
@@ -574,6 +599,9 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
                 isTraceActive={isActiveTraceEdge}
                 isTraceComplete={isTraceComplete}
                 reduceMotion={reduceMotion}
+                displayXPositions={displayXPositions}
+                isArabic={isArabic}
+                t={t}
               />
             </g>
           );
@@ -595,10 +623,10 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
           return (
             <motion.g
               key={node.id}
-              style={{ x: position.x, y: position.y, touchAction: 'none', userSelect: 'none' }}
+              style={{ x: displayXPositions.get(node.id)!, y: position.y, touchAction: 'none', userSelect: 'none' }}
               role="button"
               tabIndex={0}
-              aria-label={`Select ${node.label}${layoutLocked ? '' : ' or drag to move'}`}
+              aria-label={`${t('Select')} ${t(node.label)}${layoutLocked ? '' : ` ${t('or drag to move')}`}`}
               aria-pressed={active}
               onClick={(event) => handleNodeClick(event, node)}
               onPointerDown={(event) => handlePointerDown(event, node)}
@@ -640,7 +668,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(funct
                   {active && <circle r={node.radius + 10} fill="none" stroke={stroke} strokeWidth="2" opacity="0.55" filter="url(#graph-node-glow)" />}
                   <circle r={node.radius} fill={gradient} stroke={stroke} strokeWidth={active || hovered || isDragging ? 2.5 : 1.5} filter={hovered || isDragging ? 'url(#graph-node-glow)' : 'url(#graph-soft-shadow)'} />
                   <Icon x={-9} y={-9} width={18} height={18} color={ink} aria-hidden="true" />
-                  <text y={node.radius + 19} textAnchor="middle" className="sc-graph-node-label">{node.label}</text>
+                  <text y={node.radius + 19} textAnchor="middle" className="sc-graph-node-label" direction={isArabic ? 'rtl' : 'ltr'} unicodeBidi="plaintext">{t(node.label)}</text>
                 </motion.g>
               </motion.g>
             </motion.g>
