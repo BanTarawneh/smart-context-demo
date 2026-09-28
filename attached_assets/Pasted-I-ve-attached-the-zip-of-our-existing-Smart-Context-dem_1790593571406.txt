@@ -1,0 +1,118 @@
+I've attached the zip of our existing Smart Context demo. It's a guided product
+demo for our website: an RFQ from Northgate Water Authority (centrifugal pump
+package) moves through our agents — Intake Agent, Data to Decide, Context
+Engine, Deep Research Agent, Quotation Analysis — ending with the "Sovereign AI"
+and "Your enterprise already has the knowledge" closing screens.
+
+BEFORE CHANGING ANYTHING: explore the project and give me a short summary of
+the stack, routing/screen flow, how the guided steps and bottom-left caption
+badges work, and where the design tokens live. Then add the screens below
+WITHOUT breaking or restyling any existing screen. Reuse existing components,
+fonts, colors (navy #0A1136 background, cyan #5CCEE8 accent, green success
+accents, light slate UI cards), the caption-badge style, and the "Next: …"
+progression buttons. All data is mocked on the front end; no backend needed.
+The demo gets screen-recorded, so every screen must look good at 1920x1080 and
+1280x720, and animations should be smooth and deterministic (no random layouts
+that change between runs).
+
+NEW FLOW ORDER:
+1. Landing page (new)  →  2. Context Graph (new)  →  3. existing demo flow
+→  4. Agent Control Center (new)  →  5. existing closing screens
+
+────────────────────────────────
+1) LANDING PAGE (intro / home)
+────────────────────────────────
+Dark navy hero, same visual language as our closing screens.
+- Nav: Smart Context logo, links (Platform, How it works, Governance, GitHub),
+  buttons "View on GitHub" and "Start the demo".
+- Hero headline: "The context layer for enterprise agents."
+  Subhead: "Open-source, sovereign AI that connects your systems into one
+  living context graph, so agents reason on how your business actually works."
+- Right side of hero: a small animated preview of the context graph (nodes
+  drifting in and connecting), teasing screen 2.
+- Three pillars as cards with icons:
+  • Open source: "Inspect every line. No black boxes, no lock-in."
+  • Sovereign: "Runs in your infrastructure. Your data never leaves."
+  • Built on context: "Agents grounded in your ERP, CRM, email and contracts,
+    not just raw tables."
+- Comparison section (two columns): "Agents with a context graph" vs "Agents
+  with raw tables & metadata". Left: entities, relationships, history, meaning.
+  Right: disconnected tables, agents guessing. Use simple animated
+  illustrations, not stock images.
+- "How it works" in 4 numbered steps: Connect your systems → Build the context
+  graph → Govern your agents → Deploy agents into workflows.
+- Integration chips: SAP ERP, Salesforce CRM, Microsoft 365 Email, Contracts
+  Drive (the same ones already used in the Context Engine screen).
+- Final CTA band: "See it on a real RFQ" → starts the demo.
+- No fake customer logos or testimonials.
+
+────────────────────────────────
+2) CONTEXT GRAPH SCREEN
+────────────────────────────────
+Caption badge: "CONTEXT GRAPH / How everything in your enterprise connects".
+- Full-width interactive graph (use react-force-graph, d3-force, or
+  Cytoscape, whichever fits the stack) seeded with our demo data, with a
+  fixed seed so the layout is identical every run:
+  Node types, each with its own color and icon, plus a legend:
+  Client (Northgate Water Authority), Opportunity (Industrial Pump Package
+  RFQ), Products (centrifugal pumps, motors, 11 kV control panel), Suppliers
+  (A, B, D), Past quotations, Contracts, People (Maya Haddad, Procurement),
+  Source systems (SAP, Salesforce, M365 Email, Contracts Drive).
+  Edges labeled with relationships: "requested", "supplied", "quoted",
+  "governed by", "owned by", "synced from".
+- Intro animation: source-system nodes appear first, then entities flow out
+  of them, then relationships draw in.
+- Hover a node → highlight it and its neighbors, dim everything else.
+- Click a node → right-side panel with details, the source system it came
+  from, "last synced" time, and related facts (e.g. Supplier A: 14 previous
+  orders, 94% on-time delivery, 0 incidents; Northgate: 17 similar
+  opportunities, 11 won, 18.4% historical margin).
+- A "Trace this RFQ" button that animates the path
+  RFQ → Client → past projects → Suppliers → Quotations, showing how the agents
+  in the next screens find their answers.
+- Small stats strip at the top: counts of entities, relationships, and
+  connected sources.
+- "Next: Watch the agents work →" continues into the existing demo.
+
+────────────────────────────────
+4) AGENT CONTROL CENTER (after the existing workflow)
+────────────────────────────────
+Caption badge: "AGENT CONTROL / You decide what agents can do".
+Tabbed page inside the existing app shell (same sidebar/header):
+
+Tab A: Agents
+- One card per agent (Intake, Deep Research, Quotation Analysis, etc.) with
+  status (Active / Paused), autonomy level selector (Suggest only / Act with
+  approval / Autonomous), last action, and a Pause/Resume toggle.
+- A prominent "Pause all agents" kill switch with a confirmation modal. After
+  confirming, every card animates to Paused and a banner shows who paused them
+  and when.
+
+Tab B: Permissions
+- Matrix of agents × systems (SAP, Salesforce, Email, Contracts Drive) with
+  levels: No access / Read / Draft only / Write.
+  Example defaults: Intake = Email read, Contracts read; Quotation Analysis =
+  SAP read; nobody can send email without approval.
+- Guardrail rules as editable rows, e.g. "Any RFQ over $100,000 requires human
+  approval", "New suppliers require verification before contact", "Agents can
+  never delete records".
+
+Tab C: Approvals
+- Queue of pending human-in-the-loop requests, e.g. "Send RFQs to Suppliers A,
+  B, D", with Approve / Reject / Edit and the agent's reasoning shown.
+
+Tab D: Audit Trail
+- Timeline/table of everything the agents did on the Northgate RFQ in this
+  demo: timestamp, agent, action, system touched, data accessed, outcome, and
+  approved by (human or auto).
+- Each row expands to show the reasoning and the source records it used, with
+  links back to the matching nodes in the Context Graph.
+- Filters by agent/system/date, a search box, and an "Export log" button
+  (mock).
+- Footer note: "Immutable log · stored in your infrastructure".
+
+"Next →" continues into the existing Sovereign AI closing screen.
+
+DELIVERABLES: implement all three screens, wire them into the existing
+navigation and guided flow, and at the end list every file you added or
+changed.
