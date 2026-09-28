@@ -1,0 +1,113 @@
+Two tasks. Don't change any other screens.
+
+════════════════════════════════
+TASK 1 — FIX AND POLISH THE CONTEXT GRAPH
+════════════════════════════════
+Current bugs (see screenshot): edges don't connect to nodes (they stop short or
+float between columns), edge labels sit at fixed positions instead of on their
+lines, labels overlap ("governed by"/"owned by" under the RFQ node), and some
+relationships have no visible line.
+
+Root-cause fix:
+- Use ONE source of truth for positions: a layout object that gives every node
+  an (x, y) in a fixed virtual canvas (e.g. 1200x720). Render nodes AND edges
+  inside the same SVG using that viewBox (or render nodes as HTML absolutely
+  positioned from the same coordinates, scaled with the same transform). Don't
+  compute line positions from DOM measurements of flex/grid columns.
+- The graph must stay perfectly aligned on resize (test 1280x720, 1440x900,
+  1920x1080).
+- Define an explicit edge list: { from, to, label }. Each edge starts and ends
+  exactly on the circle's edge (offset by node radius), not at the center and
+  not short of it.
+- Draw edges as smooth cubic Bézier curves between columns, not straight
+  diagonals.
+- Put each label on its own curve's midpoint (use getPointAtLength), with a
+  small white pill background. By default show labels only on hover, on the
+  selected node, and during "Trace this RFQ". Otherwise the graph looks
+  cluttered.
+- Keep the 3 columns (Systems / Business Context / Evidence), but space the
+  nodes evenly and vertically center each column so nothing overlaps. Move Maya
+  Haddad slightly off the main vertical line so her edges don't stack on top of
+  the RFQ's.
+- Required edges (add any that are missing):
+  SAP → Northgate Water Authority, SAP → past quotations, SAP → Suppliers A/B/D
+  (synced from); Salesforce → Northgate, Salesforce → past projects (synced
+  from); M365 Email → Industrial Pump Package RFQ (synced from); Contracts Drive
+  → Suppliers A/B/D (governed by); Northgate → RFQ (requested); RFQ →
+  centrifugal pumps, motors, 11 kV control panel (requested); RFQ → Maya Haddad
+  (owned by); Northgate → past projects (history); Suppliers A/B/D → past
+  quotations (quoted); Suppliers → centrifugal pumps / motors / panel (supplied).
+
+Motion and depth (smooth, subtle, deterministic; use framer-motion if the
+project is React):
+- Entry sequence: system nodes pop in with a slight scale spring and stagger,
+  then edges draw themselves left-to-right (stroke-dashoffset animation), then
+  entity nodes fade and scale in, then evidence nodes.
+- Living graph: nodes float gently (±3px, slow, offset timings). Small glowing
+  particles travel along the edges from Systems → Business Context → Evidence
+  to show data flowing (SVG animateMotion or JS along the path, ~1 particle per
+  edge every few seconds, not too busy).
+- Depth: soft drop shadows on node circles, an inner gradient on each circle,
+  and a colored glow ring on hover and selection (cyan for entities, slate for
+  sources, orange for owner). The canvas gets a very faint dot-grid background
+  and a subtle radial light behind the center column.
+- Hover: the node lifts (scale 1.08, stronger shadow), connected edges thicken
+  and turn cyan with their labels visible, and unrelated nodes and edges dim to
+  25% opacity.
+- "Trace this RFQ": a timed sequence (~6s) that highlights step by step
+  Email → RFQ → Northgate → past projects → Suppliers A/B/D → past quotations.
+  Each edge lights up with a traveling pulse, each node gets a ripple ring when
+  reached, and a small caption at the bottom explains each hop ("Found 17
+  similar opportunities", "Supplier A: 94% on-time delivery", …). Add a Replay
+  button.
+- Respect prefers-reduced-motion (disable floating and particles).
+
+════════════════════════════════
+TASK 2 — "PLATFORM OVERVIEW" PAGE (everything we offer)
+════════════════════════════════
+A new full-screen, dark-navy page between the Landing page and the Context
+Graph (the Landing page's "Platform" nav link also opens it). It's a single
+cinematic page that shows the whole product and flows on its own, designed to
+look great in a screen recording.
+
+Structure (one continuous animated story, scroll-driven AND auto-playable):
+1. "Your systems": logo-style chips for SAP ERP, Salesforce CRM, M365 Email,
+   Contracts Drive float in on the left, with particles streaming out of them
+   to the right.
+2. "One context graph": the streams converge into a glowing central orb/graph
+   (a mini version of the context graph with nodes connecting live), labeled
+   "Smart Context Engine".
+3. "Agents that act on it": from the core, animated connectors fan out to
+   agent cards that appear one by one, each with an icon, a one-line
+   description, and a tiny looping micro-animation:
+   • Intake Agent — reads every email and attachment
+   • Data to Decide — evidence for the pursue decision
+   • Deep Research Agent — when internal knowledge isn't enough
+   • Quotation Analysis — every offer checked against your history
+   • Context Engine — one context across every system and team
+4. "Always under your control": a governance strip with animated mini
+   visuals: permission toggles flipping, an approval check appearing, an audit
+   log line typing in, and a pause switch.
+5. "Yours, not ours": three pillars glow in one after another: Open source
+   (a code bracket animation), Sovereign (a lock inside the house shape from
+   our closing screen), Built on context (graph nodes).
+6. End frame: "Your enterprise already has the knowledge. Now your agents have
+   the context to use it." with the Smart Context logo and a "See it on a real
+   RFQ →" button that goes to the Context Graph.
+
+Visual style: same navy / cyan / green palette and fonts as the rest of the
+demo. Glassmorphism cards (semi-transparent, soft blur, 1px light border),
+glows, soft shadows, and gentle parallax between layers. Transitions use eased
+fades, slides, and scale. No harsh cuts. No stock photos, no fake logos or
+testimonials.
+
+Presentation mode (important for our video):
+- Open the page with ?autoplay=1 or press "P" to play the whole story on a
+  timed sequence (~35–45s total, each section ~6–7s) with no scrolling or
+  cursor needed. Hide the scrollbar and cursor while it plays, then stop on
+  the end frame.
+- Keep the timings in one config object so we can tweak them.
+- Without autoplay, the same sections animate on scroll.
+
+When done, list every file you added or changed, and tell me the URL/params to
+open autoplay mode.
