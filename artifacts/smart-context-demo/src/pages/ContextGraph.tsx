@@ -1,7 +1,7 @@
 import { ArrowRight, CircleHelp, Database, ExternalLink, Filter, Link2, MapPin, RefreshCw, ShieldCheck, UserRound, Building2, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'wouter';
-import { GraphCanvas } from '../components/GraphCanvas';
+import { GraphCanvas, type GraphCanvasHandle } from '../components/GraphCanvas';
 import { findNode, graphNodes, traceSteps } from './context-graph-data';
 
 const stats = [
@@ -12,6 +12,8 @@ const stats = [
 ];
 
 export function ContextGraph() {
+  const graphCanvasRef = useRef<GraphCanvasHandle>(null);
+  const [layoutLocked, setLayoutLocked] = useState(false);
   const [selectedId, setSelectedId] = useState(() => {
     const requestedId = new URLSearchParams(window.location.search).get('node');
     return findNode(requestedId ?? '') ? requestedId! : 'rfq';
@@ -89,17 +91,44 @@ export function ContextGraph() {
                 <span data-testid="legend-person" className="flex items-center gap-2"><UserRound className="h-3.5 w-3.5 text-sc-amber" /> Owner</span>
                 <span data-testid="legend-edge" className="flex items-center gap-2"><span className="h-px w-5 bg-sc-muted" /> Relationship</span>
               </div>
-              <button
-                type="button"
-                onClick={startTrace}
-                data-testid="button-trace-rfq"
-                className="inline-flex items-center justify-center rounded-md border border-sc-blue px-3 py-2 text-xs font-black text-sc-blue transition-colors hover:bg-sc-blue hover:text-white"
-              >
-                <MapPin className="mr-2 h-3.5 w-3.5" /> {tracing && traceStep === traceSteps.length - 1 ? 'Replay this RFQ' : 'Trace this RFQ'}
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => graphCanvasRef.current?.resetLayout()}
+                  data-testid="button-reset-graph-layout"
+                  className="inline-flex items-center justify-center rounded-md border border-sc-line px-3 py-2 text-xs font-black text-sc-muted transition-colors hover:border-sc-blue hover:text-sc-blue"
+                >
+                  <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Reset layout
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLayoutLocked((current) => !current)}
+                  data-testid="button-lock-graph-layout"
+                  aria-pressed={layoutLocked}
+                  className={`inline-flex items-center justify-center rounded-md border px-3 py-2 text-xs font-black transition-colors ${layoutLocked ? 'border-sc-blue bg-sc-blue text-white' : 'border-sc-line text-sc-muted hover:border-sc-blue hover:text-sc-blue'}`}
+                >
+                  {layoutLocked ? 'Unlock layout' : 'Lock layout'}
+                </button>
+                <button
+                  type="button"
+                  onClick={startTrace}
+                  data-testid="button-trace-rfq"
+                  className="inline-flex items-center justify-center rounded-md border border-sc-blue px-3 py-2 text-xs font-black text-sc-blue transition-colors hover:bg-sc-blue hover:text-white"
+                >
+                  <MapPin className="mr-2 h-3.5 w-3.5" /> {tracing && traceStep === traceSteps.length - 1 ? 'Replay this RFQ' : 'Trace this RFQ'}
+                </button>
+              </div>
             </div>
 
-            <GraphCanvas selectedId={selectedId} onSelect={setSelectedId} tracing={tracing} traceStep={traceStep} onStopTrace={stopTrace} />
+            <GraphCanvas
+              ref={graphCanvasRef}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+              tracing={tracing}
+              traceStep={traceStep}
+              onStopTrace={stopTrace}
+              layoutLocked={layoutLocked}
+            />
 
             {tracing && (
               <div data-testid="trace-panel" className="mt-4 flex flex-col gap-3 rounded-lg border border-sc-blue/30 bg-sc-blue/5 p-3 sm:flex-row sm:items-center sm:justify-between">

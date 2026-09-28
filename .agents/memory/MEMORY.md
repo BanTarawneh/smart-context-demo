@@ -1,0 +1,1 @@
+- [SVG drag capture](svg-pointer-capture.md) — capture on the root SVG and handle pointer events there; nested `<g>` capture did not continue after dragging out in Chromium.
