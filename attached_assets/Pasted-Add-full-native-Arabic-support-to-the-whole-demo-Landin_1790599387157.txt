@@ -1,0 +1,138 @@
+Add full native Arabic support to the whole demo: Landing page, Platform
+Overview, Context Graph, all existing demo screens, Agent Control Center, and
+the closing screens. It must feel designed for Arabic, not machine-translated
+and not just text swapped into an LTR layout. English stays exactly as it is.
+
+════════════════════════════════
+1) LANGUAGE SWITCHING
+════════════════════════════════
+- Set up i18n with react-i18next (or the equivalent for our stack), with one
+  translation file per language (en.json, ar.json). Move ALL user-facing
+  strings into keys: nav, buttons, headings, badges, captions, tooltips, mock
+  data labels, audit log entries, modal text, toast messages, aria-labels.
+- Language toggle in the top nav and app header: "العربية" / "EN".
+- Persist the choice in localStorage (wrapped in try/catch).
+- Support ?lang=ar in the URL so we can open any screen directly in Arabic for
+  recording. It must also work together with ?autoplay=1.
+- Switching language updates instantly without a reload or losing the current
+  demo step.
+
+════════════════════════════════
+2) RTL LAYOUT
+════════════════════════════════
+- In Arabic, set <html lang="ar" dir="rtl">. In English, lang="en" dir="ltr".
+- Convert styles to logical properties (margin-inline-start, padding-inline-end,
+  inset-inline-start, text-align: start, border-inline-start, etc.), or use
+  Tailwind's rtl:/ltr: variants / ms-/me-/ps-/pe- utilities, so layouts mirror
+  automatically.
+- Mirror: nav order, sidebars (move to the right), cards with icon + text,
+  tables (first column on the right), the bottom-left caption badges (become
+  bottom-right), progress/stepper order, and "Next →" buttons (arrow points
+  left: "التالي ←").
+- Flip directional icons (arrows, chevrons, "back"/"next") in RTL. Do NOT flip
+  non-directional icons (logo, lock, email, database, checkmarks, play).
+- Animations with horizontal movement (slide-ins, marquees, particles,
+  parallax) reverse direction in RTL, e.g. content slides in from the right.
+
+════════════════════════════════
+3) GRAPHS IN RTL
+════════════════════════════════
+- Context Graph: mirror the column order so the flow reads right-to-left
+  (الأنظمة on the right → سياق الأعمال → الأدلة on the left). Mirror node
+  x-positions (x' = canvasWidth − x) from the same layout object; don't
+  maintain two layouts. Particles and "Trace this RFQ" flow right-to-left.
+- Dragging, saved custom layouts, and Reset layout must work correctly in RTL
+  (store positions per language, or store LTR positions and mirror on render).
+- Landing hero graph and Platform Overview: mirror the same way; the systems
+  stream in from the right.
+- Edge labels and node labels are Arabic and never overlap (same collision
+  rules as English).
+
+════════════════════════════════
+4) TYPOGRAPHY
+════════════════════════════════
+- Use "IBM Plex Sans Arabic" from Google Fonts for Arabic (weights 400, 500,
+  600, 700), with fallback: "IBM Plex Sans Arabic", "Noto Sans Arabic", Tahoma,
+  sans-serif. Apply it only when lang="ar".
+- In Arabic, REMOVE letter-spacing and text-transform: uppercase (they break
+  Arabic letter joining). This matters for eyebrow labels like "THE SOVEREIGN
+  CONTEXT LAYER", section titles like "SYSTEMS / EVIDENCE", and the caption
+  badges.
+- Increase line-height slightly for Arabic body text (~1.7–1.8) and adjust
+  heading sizes so hero headlines don't feel cramped or overflow.
+- Check that no text is clipped, truncated, or overflowing its container.
+
+════════════════════════════════
+5) NUMBERS, DATES, CURRENCY
+════════════════════════════════
+- Use Western digits (0–9), the norm in Jordanian business UIs, via
+  Intl.NumberFormat('ar-JO', { numberingSystem: 'latn' }). Keep this in one
+  config value so we can switch to Arabic-Indic digits later.
+- Percentages: "18.4%", "94%". Currency: "184,000 دولار" (or keep "$184,000"
+  if the layout needs it; be consistent).
+- Dates and times in the audit trail via Intl.DateTimeFormat('ar-JO',
+  { numberingSystem: 'latn' }).
+- Mixed Arabic + English/numbers must render in the correct order (wrap
+  brand names and codes in <bdi> or use unicode-bidi: isolate where needed).
+
+════════════════════════════════
+6) TRANSLATION QUALITY + GLOSSARY
+════════════════════════════════
+Write natural, professional Modern Standard Arabic suited to enterprise B2B
+(concise, confident, not literal). Keep brand/product names in English: Smart
+Context, SAP, Salesforce, Microsoft 365, GitHub, IEC, API 610, RFQ codes and
+file names. Use this glossary consistently:
+
+- Context layer → طبقة السياق
+- Context graph → رسم السياق البياني (short label: رسم السياق)
+- Context Engine → محرّك السياق
+- Sovereign AI → ذكاء اصطناعي سيادي
+- Open source → مفتوح المصدر
+- Built on context → مبني على السياق
+- Agent / Agents → وكيل / وكلاء
+- Intake Agent → وكيل الاستقبال
+- Data to Decide → من البيانات إلى القرار
+- Deep Research Agent → وكيل البحث المعمّق
+- Quotation Analysis → تحليل عروض الأسعار
+- Agent Control Center → مركز التحكم بالوكلاء
+- Permissions → الصلاحيات
+- Approvals → الموافقات
+- Audit trail → سجل التدقيق
+- Pause all agents → إيقاف جميع الوكلاء مؤقتًا
+- Autonomy: Suggest only / Act with approval / Autonomous →
+  اقتراح فقط / التنفيذ بعد الموافقة / تلقائي بالكامل
+- Access: No access / Read / Draft only / Write →
+  بلا صلاحية / قراءة / مسودة فقط / كتابة
+- RFQ (Request for Quotation) → طلب عرض سعر
+- Supplier → مورّد
+- Opportunity → فرصة
+- Should we pursue? → هل نتقدّم للعرض؟
+- Systems / Business context / Evidence → الأنظمة / سياق الأعمال / الأدلة
+- Synced from / requested / quoted / supplied / owned by / governed by →
+  مُزامَن من / طُلب / سُعِّر / زوّد / يملكه / يحكمه
+- Trace this RFQ → تتبّع طلب عرض السعر
+- Reset layout / Lock layout → إعادة ضبط التخطيط / قفل التخطيط
+- Start the demo → ابدأ العرض التوضيحي
+- View on GitHub → عرض على GitHub
+- Northgate Water Authority → هيئة مياه نورثغيت
+- Maya Haddad → مايا حداد
+- Hero headline: "The context layer for enterprise agents." →
+  "طبقة السياق لوكلاء المؤسسات."
+- Closing: "Your enterprise already has the knowledge. Now your agents have
+  the context to use it." → "مؤسستك تملك المعرفة بالفعل. والآن يملك وكلاؤك
+  السياق لاستخدامها."
+- "Your data. Your decisions. Your control." →
+  "بياناتك. قراراتك. وتحكّمك الكامل."
+
+════════════════════════════════
+7) QA CHECKLIST (do this before finishing)
+════════════════════════════════
+- Walk through every screen in Arabic at 1280x720 and 1920x1080 and fix any:
+  untranslated strings, LTR leftovers (misaligned icons, wrong arrow
+  direction, text aligned left), overlapping or clipped text, broken graph
+  edges, or animations moving the wrong way.
+- Add a dev-only check that logs any missing translation keys.
+- English must look and behave exactly as before.
+
+When done, list the files you added or changed, and give me the URLs to open
+the Landing page and the Platform Overview (with autoplay) directly in Arabic.
