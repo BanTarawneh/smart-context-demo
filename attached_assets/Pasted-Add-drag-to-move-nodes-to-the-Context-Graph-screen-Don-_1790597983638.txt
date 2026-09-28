@@ -1,0 +1,40 @@
+Add drag-to-move nodes to the Context Graph screen. Don't change other screens.
+
+DRAGGING
+- Every node (systems, business context, evidence, Maya Haddad) can be dragged
+  with the mouse and with touch (use pointer events + setPointerCapture).
+- While dragging, all connected edges, arrowheads, edge labels (kept at each
+  curve's midpoint) and flowing particles follow the node in real time. Edges
+  must always end exactly on the node's circle edge, same as now.
+- Keep node positions in the same single coordinate system/viewBox the graph
+  already uses; convert pointer coords with the SVG's getScreenCTM().inverse()
+  so dragging stays accurate at any screen size or zoom.
+- Clamp nodes inside the canvas bounds (including their label) so they can't
+  be dragged off-screen.
+- Cursor: "grab" on hover, "grabbing" while dragging.
+- Feedback while dragging: the node scales to ~1.1 with a stronger shadow/glow
+  and its connected edges highlight cyan (same style as hover). On release it
+  settles with a small spring (framer-motion or equivalent).
+- Pause the idle floating animation for the node being dragged, and resume it
+  smoothly afterwards (float around the NEW position, no jump back).
+- Use a ~4px movement threshold so a plain click still opens the node's detail
+  panel, and a drag never does.
+- "Trace this RFQ" and hover highlighting must keep working with the new
+  positions.
+
+LAYOUT CONTROLS (small buttons in the graph toolbar, next to "Trace this RFQ")
+- "Reset layout": animates every node back to its default position.
+- Save the custom layout to localStorage automatically (wrapped in try/catch),
+  so an arrangement we set up for recording survives a refresh. Reset clears it.
+- Optional "Lock layout" toggle that disables dragging, for recording.
+
+ALSO FIX
+- The "owned by" edge label overlaps the "Industrial Pump Package RFQ" node
+  name. Edge labels must never sit on top of node labels: if a label's midpoint
+  collides with a node or its name, shift it along the curve (e.g. to 35% or
+  65% of the path) or hide it until hover.
+- The graph is cropped at the bottom (edges from Suppliers A/B/D run off the
+  canvas). Make the canvas tall enough, or scale the viewBox, so all nodes and
+  edges fit with padding at 1280x720, 1440x900 and 1920x1080.
+
+When done, list the files you changed.
