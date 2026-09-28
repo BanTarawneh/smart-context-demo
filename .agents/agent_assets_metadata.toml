@@ -14,3 +14,17 @@ mtime_ms = 1790070133563
 storage_uri = "gcs://replit-rams-assets-pike/rams/assets/repl:68f3f21c-2430-4116-8e00-df3badb4e24c/85993352-f51b-4cb3-96ba-e6cac62cace0/0b9f996a-2896-451e-8ba1-165267e16dc5"
 storage_version_token = "1790070146182299"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "NM2sCxactaly-01ReVmDN"
+uri = "file://smart-context-demo-ar.zip"
+type = "unspecified"
+title = "Smart Context Demo ZIP"
+description = "Source and assets for the localized Smart Context demo. Generated dependencies and build output are excluded."
+logical_id = "c0594742-bf51-4cd7-9701-3c602bc4a378"
+content_hash = "sha256:8a193c1f7857b5a371625ce57db2a0e76b60a2875f05eaf91372b20813ef3d08"
+size = 2460750
+mtime_ms = 1790601643688
+storage_uri = "gcs://replit-rams-assets-pike/rams/assets/repl:68f3f21c-2430-4116-8e00-df3badb4e24c/c0594742-bf51-4cd7-9701-3c602bc4a378/23c387a3-02c8-4b2d-b980-1de35df20ee2"
+storage_version_token = "1790601652297701"
+content_type = "application/octet-stream"
