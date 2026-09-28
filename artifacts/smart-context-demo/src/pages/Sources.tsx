@@ -42,7 +42,7 @@ export function Sources() {
               
               <div className="p-6 border-b border-white/10 flex items-center justify-between relative z-10">
                  <div className="flex items-center gap-3">
-                     <BrandLogo variant="mark" className="h-8 w-8" />
+                      <BrandLogo variant="mark" className="h-8 w-8" testId="link-sources-engine-home" />
                     <h2 className="font-black text-lg">Context Engine Health</h2>
                  </div>
                  <div className="flex items-center gap-2 text-xs font-black text-sc-cyan bg-sc-cyan/10 px-3 py-1.5 rounded-full uppercase tracking-wider border border-sc-cyan/20">
@@ -80,7 +80,7 @@ export function Sources() {
                     </div>
                   </div>
                   <div className="hidden xl:flex w-[250px] min-h-[210px] flex-shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white p-6 shadow-[0_18px_50px_rgba(0,0,0,0.18)]">
-                     <BrandLogo variant="full" className="w-full" />
+                      <BrandLogo variant="full" className="w-full" testId="link-sources-full-home" linkClassName="h-full w-full items-center justify-center" />
                   </div>
               </div>
            </div>

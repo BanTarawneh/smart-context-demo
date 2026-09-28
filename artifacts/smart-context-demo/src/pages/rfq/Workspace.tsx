@@ -34,7 +34,7 @@ export function Workspace() {
       <div className="w-[430px] flex flex-col bg-white flex-shrink-0">
          <div className="p-6 border-b border-sc-line flex items-center justify-between bg-[#fbfdff]">
             <div className="flex items-center gap-2 font-black text-sm text-sc-navy">
-               <BrandLogo variant="mark" className="h-5 w-5" />
+                <BrandLogo variant="mark" className="h-5 w-5" testId="link-rfq-extraction-home" />
               Smart Context Extraction
             </div>
             {sapCreated && <div className="text-[10px] font-black uppercase tracking-wider text-sc-green bg-sc-green/10 px-2 py-1 rounded">SAP Inquiry 10004582</div>}

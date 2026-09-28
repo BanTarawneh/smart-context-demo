@@ -86,9 +86,7 @@ export function PlatformOverview() {
       {!presentationMode && (
         <header className="fixed left-0 right-0 top-0 z-30 border-b border-white/10 bg-sc-navy/80 px-5 py-4 backdrop-blur-xl sm:px-8">
           <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-4">
-            <Link href="/" data-testid="link-platform-brand-home" className="shrink-0 rounded-md focus:outline-none focus:ring-2 focus:ring-sc-cyan">
-              <BrandLogo variant="wordmark" invert className="h-7" />
-            </Link>
+            <BrandLogo variant="wordmark" invert className="h-7" testId="link-platform-brand-home" linkClassName="shrink-0" />
             <div className="hidden items-center gap-1.5 md:flex" aria-label={`Platform story, scene ${activeScene + 1} of ${SCENE_COUNT}`}>
               {Array.from({ length: SCENE_COUNT }, (_, index) => (
                 <span key={index} className={`h-1 w-7 rounded-full transition-colors ${index === activeScene ? 'bg-sc-cyan' : index < activeScene ? 'bg-sc-green/80' : 'bg-white/15'}`} />
@@ -104,6 +102,16 @@ export function PlatformOverview() {
             </button>
           </div>
         </header>
+      )}
+
+      {presentationMode && playing && (
+        <BrandLogo
+          variant="wordmark"
+          invert
+          className="h-6"
+          testId="link-platform-presentation-home"
+          linkClassName="absolute left-5 top-5 z-30 border border-white/10 bg-sc-navy/70 p-2 backdrop-blur-md sm:left-8 sm:top-6"
+        />
       )}
 
       {presentationMode && !playing && (

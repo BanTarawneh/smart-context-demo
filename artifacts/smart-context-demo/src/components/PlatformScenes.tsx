@@ -385,7 +385,7 @@ export function PlatformScene({
             aria-hidden="true"
           />
           <div className="relative">
-            <div className="mb-8 flex justify-center"><BrandLogo variant="wordmark" invert className="h-11" /></div>
+            <div className="mb-8 flex justify-center"><BrandLogo variant="wordmark" invert className="h-11" testId="link-platform-end-brand-home" /></div>
             <div className="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-2xl border border-sc-cyan/35 bg-sc-cyan/10 text-sc-cyan"><Sparkles className="h-6 w-6" /></div>
             <div className="text-xs font-black uppercase tracking-[0.2em] text-sc-cyan">Smart Context</div>
             <h1 className="mt-5 text-4xl font-black leading-[1.02] tracking-[-0.05em] text-white sm:text-6xl lg:text-7xl">

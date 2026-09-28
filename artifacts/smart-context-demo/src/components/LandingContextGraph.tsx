@@ -16,6 +16,7 @@ const GRAPH_TIMING = {
   countUpDurationSeconds: 1.55,
   countUpDelaySeconds: 0.28,
   edgeDrawSeconds: 0.88,
+  edgeFadeSeconds: 0.32,
   primaryEdgeDelaySeconds: 0.42,
   outerEdgeDelaySeconds: 1.75,
   edgeStaggerSeconds: 0.045,
@@ -23,12 +24,20 @@ const GRAPH_TIMING = {
   innerNodeStaggerSeconds: 0.1,
   outerNodeDelaySeconds: 1.7,
   outerNodeStaggerSeconds: 0.052,
+  hubEntryDelaySeconds: 0.05,
+  captionTransitionSeconds: 0.28,
+  liveIndicatorDurationSeconds: 1.8,
+  nodeOpacityTransitionSeconds: 0.3,
   entrySpringStiffness: 230,
   entrySpringDamping: 22,
+  hoverSpringStiffness: 260,
+  hoverSpringDamping: 20,
+  hubEntrySpringStiffness: 210,
+  hubEntrySpringDamping: 17,
   nodeDriftPixels: 3.2,
   nodeDriftDurationSeconds: 9.5,
   nodeDriftPhaseSeconds: 0.55,
-  graphSwayDegrees: 0.38,
+  graphSwayPixels: 1.6,
   graphSwayDurationSeconds: 180,
   centerGlowDurationSeconds: 8.5,
   dotGridDurationSeconds: 54,
@@ -197,7 +206,6 @@ function GraphEdgeView({
   isFocused,
   isActivePath,
   isDimmed,
-  compact,
 }: {
   edge: GraphEdge;
   from: PositionedGraphNode;
@@ -208,7 +216,6 @@ function GraphEdgeView({
   isFocused: boolean;
   isActivePath: boolean;
   isDimmed: boolean;
-  compact: boolean;
 }) {
   const fromOffset = offsets.get(edge.from)!;
   const toOffset = offsets.get(edge.to)!;
@@ -234,11 +241,11 @@ function GraphEdgeView({
         animate={{ pathLength: 1, opacity }}
         transition={reduceMotion ? { duration: 0 } : {
           pathLength: { duration: GRAPH_TIMING.edgeDrawSeconds, delay: edgeDelay, ease: 'easeOut' },
-          opacity: { duration: 0.32 },
+          opacity: { duration: GRAPH_TIMING.edgeFadeSeconds },
         }}
         aria-hidden="true"
       />
-      {edge.flow && !reduceMotion && !compact && (
+      {edge.flow && !reduceMotion && (
         <circle
           r={isActivePath ? 3.4 : 2.5}
           fill={isActivePath ? '#CFFFFF' : '#70EEF0'}
@@ -346,7 +353,8 @@ export function LandingContextGraph() {
     activeNodes.forEach((node, index) => {
       if (node.id === 'rfq') return;
       const offset = nodeOffsets.get(node.id)!;
-      const entryDelay = node.kind === 'entity' || node.kind === 'person' || node.kind === 'metric'
+      const isOuter = !['sap', 'crm', 'email', 'contracts', 'suppliers', 'margin'].includes(node.id);
+      const entryDelay = isOuter
         ? GRAPH_TIMING.outerNodeDelaySeconds + Math.max(0, index - 7) * GRAPH_TIMING.outerNodeStaggerSeconds
         : GRAPH_TIMING.innerNodeDelaySeconds + Math.max(0, index - 1) * GRAPH_TIMING.innerNodeStaggerSeconds;
       const spring = {
@@ -441,12 +449,12 @@ export function LandingContextGraph() {
               <motion.span
                 className="h-2 w-2 rounded-full bg-[#62DEA4] shadow-[0_0_12px_rgba(98,222,164,.8)]"
                 animate={reduceMotion ? undefined : { opacity: [1, 0.56, 1], scale: [1, 0.86, 1] }}
-                transition={reduceMotion ? undefined : { duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+                transition={reduceMotion ? undefined : { duration: GRAPH_TIMING.liveIndicatorDurationSeconds, repeat: Infinity, ease: 'easeInOut' }}
                 aria-hidden="true"
               />
               <span>Live context graph</span>
             </div>
-            <div className="mt-1.5 text-sm font-black text-white sm:text-base">RFQ decision context</div>
+            <div data-testid="text-preview-status" className="mt-1.5 text-sm font-black text-white sm:text-base">RFQ decision context</div>
           </div>
           <div className="shrink-0 rounded-lg border border-white/10 bg-white/[0.055] px-2.5 py-2 font-mono text-[9px] font-bold text-white/70 shadow-inner sm:text-[10px]">
             <span className="tabular-nums text-white">{entityCount}</span> entities <span className="mx-1 text-white/25">·</span>
@@ -475,15 +483,10 @@ export function LandingContextGraph() {
               </radialGradient>
             </defs>
 
-            {!reduceMotion && (
-              <motion.g
-                animate={{ x: [-GRAPH_TIMING.graphSwayDegrees, GRAPH_TIMING.graphSwayDegrees, -GRAPH_TIMING.graphSwayDegrees] }}
-                transition={{ duration: GRAPH_TIMING.graphSwayDurationSeconds, repeat: Infinity, ease: 'easeInOut' }}
-                aria-hidden="true"
-              >
-                {null}
-              </motion.g>
-            )}
+            <motion.g
+              animate={reduceMotion ? undefined : { x: [-GRAPH_TIMING.graphSwayPixels, GRAPH_TIMING.graphSwayPixels, -GRAPH_TIMING.graphSwayPixels] }}
+              transition={reduceMotion ? undefined : { duration: GRAPH_TIMING.graphSwayDurationSeconds, repeat: Infinity, ease: 'easeInOut' }}
+            >
 
             <motion.circle
               cx={graphSize.center.x}
@@ -502,7 +505,7 @@ export function LandingContextGraph() {
                 const to = activePositions.get(edge.to)!;
                 const edgeIsFocused = edge.from === activeFocusId || edge.to === activeFocusId
                   || (activeNeighbors.has(edge.from) && activeNeighbors.has(edge.to));
-                const edgeIsActivePath = edge.kind === 'primary' && edge.from === cycle.sourceId && edge.to === 'rfq';
+                const edgeIsActivePath = edge.kind === 'primary' && edge.from === activeFocusId && edge.to === 'rfq';
                 const edgeIsDimmed = Boolean(activeFocusId && !edgeIsFocused);
                 return (
                   <GraphEdgeView
@@ -516,7 +519,6 @@ export function LandingContextGraph() {
                     isFocused={edgeIsFocused}
                     isActivePath={edgeIsActivePath}
                     isDimmed={edgeIsDimmed}
-                    compact={compact}
                   />
                 );
               })}
@@ -527,7 +529,7 @@ export function LandingContextGraph() {
               const hovered = hoveredNodeId === node.id;
               const connected = node.id === activeFocusId || activeNeighbors.has(node.id);
               const dimmed = Boolean(activeFocusId && !connected);
-              const isOuter = node.kind === 'entity' || node.kind === 'person' || node.kind === 'metric';
+              const isOuter = !['sap', 'crm', 'email', 'contracts', 'suppliers', 'margin'].includes(node.id);
               const entryDelay = isOuter
                 ? GRAPH_TIMING.outerNodeDelaySeconds + Math.max(0, index - 6) * GRAPH_TIMING.outerNodeStaggerSeconds
                 : GRAPH_TIMING.innerNodeDelaySeconds + Math.max(0, index - 1) * GRAPH_TIMING.innerNodeStaggerSeconds;
@@ -540,8 +542,8 @@ export function LandingContextGraph() {
                     initial={reduceMotion ? false : { opacity: 0, scale: 0.7 }}
                     animate={{ opacity: dimmed ? 0.34 : 1, scale: hovered ? 1.16 : 1 }}
                     transition={reduceMotion ? { duration: 0 } : {
-                      opacity: { duration: 0.3 },
-                      scale: { type: 'spring', stiffness: 260, damping: 20 },
+                      opacity: { duration: GRAPH_TIMING.nodeOpacityTransitionSeconds },
+                      scale: { type: 'spring', stiffness: GRAPH_TIMING.hoverSpringStiffness, damping: GRAPH_TIMING.hoverSpringDamping },
                       delay: entryDelay,
                     }}
                   >
@@ -554,11 +556,11 @@ export function LandingContextGraph() {
                       onMouseLeave={() => setHovered(null)}
                       onFocus={() => setHovered(node.id)}
                       onBlur={() => setHovered(null)}
-                      onClick={() => setHovered(hovered ? null : node.id)}
+                      onClick={() => setHovered(node.id)}
                       onKeyDown={(event) => {
                         if (event.key === 'Enter' || event.key === ' ') {
                           event.preventDefault();
-                          setHovered(hovered ? null : node.id);
+                          setHovered(node.id);
                         }
                       }}
                       className="cursor-pointer outline-none"
@@ -601,7 +603,12 @@ export function LandingContextGraph() {
                   style={{ x: nodeOffsets.get('rfq')!.x, y: nodeOffsets.get('rfq')!.y }}
                   initial={reduceMotion ? false : { scale: 0.36, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  transition={reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 210, damping: 17, delay: 0.05 }}
+                  transition={reduceMotion ? { duration: 0 } : {
+                    type: 'spring',
+                    stiffness: GRAPH_TIMING.hubEntrySpringStiffness,
+                    damping: GRAPH_TIMING.hubEntrySpringDamping,
+                    delay: GRAPH_TIMING.hubEntryDelaySeconds,
+                  }}
                 >
                   {!reduceMotion && [0, 1].map((pulse) => (
                     <motion.circle
@@ -631,11 +638,11 @@ export function LandingContextGraph() {
                     onMouseLeave={() => setHovered(null)}
                     onFocus={() => setHovered('rfq')}
                     onBlur={() => setHovered(null)}
-                    onClick={() => setHovered(hoveredNodeId === 'rfq' ? null : 'rfq')}
+                    onClick={() => setHovered('rfq')}
                     onKeyDown={(event) => {
                       if (event.key === 'Enter' || event.key === ' ') {
                         event.preventDefault();
-                        setHovered(hoveredNodeId === 'rfq' ? null : 'rfq');
+                        setHovered('rfq');
                       }
                     }}
                     className="cursor-pointer outline-none"
@@ -664,6 +671,7 @@ export function LandingContextGraph() {
                 ))}
               </g>
             )}
+            </motion.g>
           </motion.svg>
         </div>
 
@@ -676,7 +684,7 @@ export function LandingContextGraph() {
                   initial={reduceMotion ? false : { opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={reduceMotion ? undefined : { opacity: 0, y: -4 }}
-                  transition={reduceMotion ? { duration: 0 } : { duration: 0.28 }}
+                  transition={reduceMotion ? { duration: 0 } : { duration: GRAPH_TIMING.captionTransitionSeconds }}
                   className="inline-block"
                   data-testid="text-graph-cycle-caption"
                 >

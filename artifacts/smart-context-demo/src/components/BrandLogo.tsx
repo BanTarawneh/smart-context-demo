@@ -7,6 +7,7 @@ type BrandLogoProps = {
   invert?: boolean;
   testId?: string;
   linkClassName?: string;
+  onClick?: () => void;
 };
 
 export function BrandLogo({
@@ -15,6 +16,7 @@ export function BrandLogo({
   invert = false,
   testId = 'link-brand-home',
   linkClassName = '',
+  onClick,
 }: BrandLogoProps) {
   const basePath = import.meta.env.BASE_URL;
   const resetDemo = useDemoReset();
@@ -22,7 +24,10 @@ export function BrandLogo({
   return (
     <Link
       href="/"
-      onClick={resetDemo}
+      onClick={() => {
+        resetDemo();
+        onClick?.();
+      }}
       aria-label="Smart Context home"
       data-testid={testId}
       className={`inline-flex cursor-pointer rounded-md transition-opacity duration-200 hover:opacity-[0.85] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sc-cyan focus-visible:ring-offset-2 ${invert ? 'focus-visible:ring-offset-sc-navy' : 'focus-visible:ring-offset-white'} ${linkClassName}`}
