@@ -58,7 +58,7 @@ export function Landing() {
             <BrandLogo variant="wordmark" invert className="h-8" />
           </Link>
           <nav className="hidden items-center gap-7 text-sm font-bold text-white/65 md:flex" aria-label="Main navigation">
-            <a href="#platform" data-testid="link-platform" className="transition-colors hover:text-white">Platform</a>
+            <Link href="/platform" data-testid="link-platform" className="transition-colors hover:text-white">Platform</Link>
             <a href="#how-it-works" data-testid="link-how-it-works" className="transition-colors hover:text-white">How it works</a>
             <a href="#governance" data-testid="link-governance" className="transition-colors hover:text-white">Governance</a>
             <a href="#open-source" data-testid="link-github" className="transition-colors hover:text-white">GitHub</a>

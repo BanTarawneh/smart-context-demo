@@ -1,19 +1,21 @@
-import { motion, useReducedMotion } from 'framer-motion';
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { animate, motion, motionValue, useReducedMotion, useTransform, type MotionValue } from 'framer-motion';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { graphEdges, graphNodes, traceSteps, type GraphEdge, type GraphNode } from '../pages/context-graph-data';
 
 const VIEWBOX = '0 0 1000 720';
 
-function edgePath(edge: GraphEdge, nodeMap: Map<string, GraphNode>) {
+function edgePath(edge: GraphEdge, nodeMap: Map<string, GraphNode>, fromOffset = 0, toOffset = 0) {
   const from = nodeMap.get(edge.from)!;
   const to = nodeMap.get(edge.to)!;
   const dx = to.x - from.x;
-  const dy = to.y - from.y;
+  const fromY = from.y + fromOffset;
+  const toY = to.y + toOffset;
+  const dy = toY - fromY;
   const length = Math.hypot(dx, dy) || 1;
   const ux = dx / length;
   const uy = dy / length;
-  const start = { x: from.x + ux * from.radius, y: from.y + uy * from.radius };
-  const end = { x: to.x - ux * to.radius, y: to.y - uy * to.radius };
+  const start = { x: from.x + ux * from.radius, y: fromY + uy * from.radius };
+  const end = { x: to.x - ux * to.radius, y: toY - uy * to.radius };
   const bend = edge.bend ?? 0;
   const normalX = -uy;
   const normalY = ux;
@@ -25,25 +27,31 @@ function edgePath(edge: GraphEdge, nodeMap: Map<string, GraphNode>) {
 function GraphEdgeView({
   edge,
   nodeMap,
+  nodeOffsets,
   index,
   isHovered,
   isSelected,
+  isDimmed,
   isTraceActive,
   isTraceComplete,
   reduceMotion,
 }: {
   edge: GraphEdge;
   nodeMap: Map<string, GraphNode>;
+  nodeOffsets: Map<string, MotionValue<number>>;
   index: number;
   isHovered: boolean;
   isSelected: boolean;
+  isDimmed: boolean;
   isTraceActive: boolean;
   isTraceComplete: boolean;
   reduceMotion: boolean;
 }) {
   const pathRef = useRef<SVGPathElement>(null);
   const [labelPoint, setLabelPoint] = useState({ x: 0, y: 0 });
-  const d = useMemo(() => edgePath(edge, nodeMap), [edge, nodeMap]);
+  const fromOffset = nodeOffsets.get(edge.from)!;
+  const toOffset = nodeOffsets.get(edge.to)!;
+  const d = useTransform([fromOffset, toOffset], (latest: number[]) => edgePath(edge, nodeMap, latest[0], latest[1]));
   const labelWidth = Math.max(66, edge.label.length * 6.4 + 22);
   const labelVisible = isHovered || isSelected || isTraceActive || isTraceComplete;
   const edgeColor = isTraceActive ? '#4EE1DE' : isTraceComplete ? '#2FA9B8' : isHovered || isSelected ? '#23B6C4' : '#AEBCCC';
@@ -67,8 +75,8 @@ function GraphEdgeView({
         strokeLinecap="round"
         markerEnd={isTraceActive || isTraceComplete || isHovered || isSelected ? 'url(#graph-arrow-active)' : 'url(#graph-arrow)'}
         initial={reduceMotion ? false : { pathLength: 0, opacity: 0.3 }}
-        animate={{ pathLength: 1, opacity: isHovered || isSelected || isTraceActive || isTraceComplete ? 1 : 0.62 }}
-        transition={reduceMotion ? { duration: 0 } : { pathLength: { duration: 0.3, delay: 0.2 + index * 0.008, ease: 'easeOut' }, opacity: { duration: 0.2 } }}
+        animate={{ pathLength: 1, opacity: isDimmed ? 0.25 : isHovered || isSelected || isTraceActive || isTraceComplete ? 1 : 0.62 }}
+        transition={reduceMotion ? { duration: 0 } : { pathLength: { duration: 0.3, delay: 0.55 + index * 0.025, ease: 'easeOut' }, opacity: { duration: 0.2 } }}
         className="sc-graph-path"
         aria-hidden="true"
       />
@@ -84,7 +92,7 @@ function GraphEdgeView({
             dur={isTraceActive ? '1.1s' : `${5.2 + (index % 4) * 0.55}s`}
             begin={isTraceActive ? '0s' : `${(index % 6) * 0.65}s`}
             repeatCount="indefinite"
-            path={d}
+            path={d.get()}
           />
         </circle>
       )}
@@ -108,6 +116,16 @@ export function GraphCanvas({
   const reduceMotion = useReducedMotion() ?? false;
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const nodeMap = useMemo(() => new Map(graphNodes.map((node) => [node.id, node])), []);
+  const nodeOffsets = useMemo(() => new Map(graphNodes.map((node) => [node.id, motionValue(0)])), []);
+  useEffect(() => {
+    if (reduceMotion) return;
+    const controls = graphNodes.map((node, index) => animate(
+      nodeOffsets.get(node.id)!,
+      [0, -3, 0, 3, 0],
+      { duration: 7 + index * 0.23, delay: index * 0.16, repeat: Infinity, ease: 'easeInOut' },
+    ));
+    return () => controls.forEach((control) => control.stop());
+  }, [nodeOffsets, reduceMotion]);
   const relatedIds = useMemo(() => {
     if (!hoveredId) return new Set<string>();
     const related = new Set([hoveredId]);
@@ -170,15 +188,17 @@ export function GraphCanvas({
           const hovered = Boolean(hoveredId && (edge.from === hoveredId || edge.to === hoveredId));
           const isActiveTraceEdge = edge.id === activeTraceEdgeId;
           const isTraceComplete = traceEdgeIds.has(edge.id);
-          const dimmed = Boolean(hoveredId && !relatedIds.has(edge.from) && !relatedIds.has(edge.to));
+              const dimmed = Boolean(hoveredId && edge.from !== hoveredId && edge.to !== hoveredId);
           return (
-            <g key={edge.id} opacity={dimmed ? 0.25 : 1} className="transition-opacity">
+            <g key={edge.id} className="transition-opacity">
               <GraphEdgeView
                 edge={edge}
                 nodeMap={nodeMap}
+                nodeOffsets={nodeOffsets}
                 index={index}
                 isHovered={hovered}
                 isSelected={incident}
+                isDimmed={dimmed}
                 isTraceActive={isActiveTraceEdge}
                 isTraceComplete={isTraceComplete}
                 reduceMotion={reduceMotion}
@@ -194,7 +214,7 @@ export function GraphCanvas({
           const dimmed = Boolean(hoveredId && !relatedIds.has(node.id));
           const isSource = node.group === 'source';
           const isEvidence = node.group === 'evidence';
-          const entryDelay = isSource ? index * 0.045 : isEvidence ? 0.58 + index * 0.035 : 0.38 + index * 0.04;
+          const entryDelay = isSource ? index * 0.08 : isEvidence ? 2 + index * 0.06 : 1.45 + index * 0.08;
           const gradient = node.group === 'source' ? 'url(#graph-source-fill)' : node.group === 'person' ? 'url(#graph-person-fill)' : 'url(#graph-context-fill)';
           const stroke = node.group === 'source' ? '#9CB5CA' : node.group === 'person' ? '#C9772C' : '#4ECBDE';
           const ink = node.group === 'person' ? '#A35A18' : '#1C77BE';
@@ -218,13 +238,9 @@ export function GraphCanvas({
                   onStopTrace();
                 }
               }}
-              opacity={dimmed ? 0.25 : 1}
               className="sc-graph-node-group cursor-pointer transition-opacity"
             >
-              <motion.g
-                animate={reduceMotion ? undefined : { y: [0, -2, 0, 2, 0] }}
-                transition={reduceMotion ? undefined : { duration: 7 + index * 0.23, repeat: Infinity, ease: 'easeInOut', delay: index * 0.16 }}
-              >
+              <motion.g style={{ y: nodeOffsets.get(node.id)! }}>
                 <motion.g
                   initial={reduceMotion ? false : { opacity: 0.2, scale: 0.76 }}
                   animate={{ opacity: dimmed ? 0.25 : 1, scale: hovered ? 1.08 : 1 }}
@@ -243,7 +259,7 @@ export function GraphCanvas({
                     />
                   )}
                   {active && <circle r={node.radius + 10} fill="none" stroke={stroke} strokeWidth="2" opacity="0.55" filter="url(#graph-node-glow)" />}
-                  <circle r={node.radius} fill={gradient} stroke={stroke} strokeWidth={active || hovered ? 2.5 : 1.5} filter="url(#graph-soft-shadow)" />
+                  <circle r={node.radius} fill={gradient} stroke={stroke} strokeWidth={active || hovered ? 2.5 : 1.5} filter={hovered ? 'url(#graph-node-glow)' : 'url(#graph-soft-shadow)'} />
                   <Icon x={-9} y={-9} width={18} height={18} color={ink} aria-hidden="true" />
                   <text y={node.radius + 19} textAnchor="middle" className="sc-graph-node-label">{node.label}</text>
                 </motion.g>

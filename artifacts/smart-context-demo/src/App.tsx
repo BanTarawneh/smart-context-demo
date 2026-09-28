@@ -9,6 +9,7 @@ import { Sources } from './pages/Sources';
 import { Landing } from './pages/Landing';
 import { ContextGraph } from './pages/ContextGraph';
 import { AgentControlCenter } from './pages/AgentControlCenter';
+import { PlatformOverview } from './pages/PlatformOverview';
 import { useEffect, useState } from 'react';
 
 function AppContent() {
@@ -31,6 +32,10 @@ function AppContent() {
 
   if (location === '/') {
     return <Landing />;
+  }
+
+  if (location === '/platform' || location === '/platform/') {
+    return <PlatformOverview />;
   }
 
   return (

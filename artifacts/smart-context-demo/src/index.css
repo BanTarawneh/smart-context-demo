@@ -41,6 +41,44 @@
   animation: sc-graph-edge-draw 240ms ease-out backwards;
 }
 
+.sc-graph-column-label {
+  fill: #718096;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 2.2px;
+}
+
+.sc-graph-node-label {
+  fill: #0B1437;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.sc-flow-particle {
+  filter: drop-shadow(0 0 4px rgba(78, 203, 222, .8));
+  opacity: .7;
+}
+
+.sc-flow-particle.is-tracing {
+  filter: drop-shadow(0 0 7px rgba(78, 203, 222, 1));
+  opacity: 1;
+}
+
+.sc-platform-scroll {
+  scroll-snap-type: y mandatory;
+}
+
+.sc-platform-locked::-webkit-scrollbar {
+  display: none;
+}
+
+.sc-platform-locked {
+  cursor: none;
+  scrollbar-width: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sc-graph-node-source,
   .sc-graph-node-entity,
@@ -51,6 +89,11 @@
 
   .sc-graph-edge-line {
     stroke-dashoffset: 0;
+  }
+
+  .sc-flow-particle,
+  .sc-flow-particle.is-tracing {
+    display: none;
   }
 }
 
