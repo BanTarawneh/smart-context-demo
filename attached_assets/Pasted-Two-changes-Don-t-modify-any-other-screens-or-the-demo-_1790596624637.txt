@@ -1,0 +1,81 @@
+Two changes. Don't modify any other screens or the demo flow.
+
+════════════════════════════════
+1) LOGO → HOME
+════════════════════════════════
+- Make the Smart Context logo (icon + wordmark) a link to the Landing page
+  ("/") on EVERY screen that shows it: the landing nav, the Platform Overview,
+  the app shell sidebar/header used by the demo screens, the Context Graph,
+  and the Agent Control Center.
+- Use the router's Link/navigation (no full page reload), and reset the
+  guided-demo state/step so the demo starts fresh next time.
+- Add cursor: pointer, a subtle hover (opacity 0.85 or a slight glow),
+  aria-label="Smart Context home", and keyboard focus styling.
+- If there's autoplay/presentation mode, clicking the logo exits it.
+- If the logo is duplicated in several files, extract a shared <Logo /> (or
+  equivalent) component that handles this.
+
+════════════════════════════════
+2) LANDING HERO — "LIVE CONTEXT GRAPH" CARD
+════════════════════════════════
+Make it feel alive and premium. Keep it deterministic (fixed seed/positions)
+so it looks the same in every recording.
+
+Card styling
+- Switch from the flat white card to a dark glass card that fits the navy
+  hero: semi-transparent navy (e.g. rgba(20,32,70,0.6)), backdrop blur,
+  1px light border (rgba(255,255,255,0.08)), large soft shadow, and a faint
+  cyan glow behind the card.
+- Faint animated dot grid inside the card, plus a slow radial light pulse
+  behind the center node.
+- Fix the overlaps: the status dot sits inline next to the "LIVE CONTEXT
+  GRAPH" title (pulsing green, "live" style), and every node label stays
+  clear of the footer.
+
+Graph content
+- Hub-and-ring layout centered on the RFQ node:
+  • Inner ring (primary): SAP, CRM, Email, Contracts, Suppliers, Margin
+  • Outer ring: 12–16 smaller secondary nodes (Northgate, Supplier A,
+    Supplier B, Supplier D, Past quotes, Pumps, Motors, 11 kV panel, Maya H.,
+    Delivery 94%, 17 similar deals, Contract terms…) connected to the inner
+    ring nodes, so it looks like a real network, not a star.
+- Color nodes by type (sources = slate/blue, entities = cyan, people =
+  orange, metrics = green) with soft glow halos.
+- Solid curved edges with a gradient stroke instead of thin dashed lines;
+  secondary edges are thinner and lower-opacity.
+- Labels as small pill tags with a translucent background, readable on dark.
+
+Motion
+- Load: the RFQ hub scales in, then inner nodes spring out from the center
+  with a stagger, edges draw outward (stroke-dashoffset), and outer nodes
+  fade in last.
+- Idle "breathing": nodes drift gently (±3–4px, slow, offset phases), and the
+  whole graph rotates very slowly (~1 full turn per 3–4 minutes) or sways
+  slightly. Keep it calm, not dizzy.
+- Data flow: small glowing particles travel along the edges from sources
+  toward the RFQ hub, a few at a time, with staggered timing.
+- RFQ hub: a double pulse ring every ~2.5s, like a heartbeat.
+- Auto-highlight cycle every ~3s: one source lights up, its path to the RFQ
+  glows cyan, the connected outer nodes brighten, everything else dims
+  slightly, and the footer caption changes to match, e.g.:
+  "SAP → 14 previous orders with Supplier A"
+  "CRM → 17 similar opportunities, 11 won"
+  "Email → RFQ + 2 attachments parsed"
+  "Contracts → agreement active with Supplier A"
+  "Margin → 18.4% historical margin"
+  Crossfade the caption text.
+- Counters in the top-right badge count up on load (0 → 47 entities, 0 → 112
+  links), and the "Synced just now" footer occasionally flashes a tiny green
+  tick.
+- Interaction: hovering a node pauses the auto-cycle, highlights its
+  neighbors, and shows a small tooltip with its source and one fact. Moving
+  the mouse over the card gives a subtle 3D tilt/parallax (max ~6°), with the
+  graph layer moving a bit more than the card.
+- Respect prefers-reduced-motion (static graph, no particles or tilt).
+
+Implementation: SVG with framer-motion (or the project's animation library),
+all nodes and edges from one coordinate system so edges always meet nodes
+exactly. Keep it performant (no layout thrashing; animate transform/opacity).
+Keep all timings in one config object.
+
+When done, list the files you changed.

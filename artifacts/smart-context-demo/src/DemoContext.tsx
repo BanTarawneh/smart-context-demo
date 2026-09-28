@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useCallback, useContext, useState, ReactNode } from 'react';
 
 interface DemoState {
   quantityCorrected: boolean;
@@ -13,6 +13,7 @@ interface DemoState {
   setSupplierSelected: (v: boolean) => void;
   decisionSent: boolean;
   setDecisionSent: (v: boolean) => void;
+  resetDemo: () => void;
 }
 
 const DemoContext = createContext<DemoState | null>(null);
@@ -24,6 +25,14 @@ export function DemoProvider({ children }: { children: ReactNode }) {
   const [rfqsGenerated, setRfqsGenerated] = useState(false);
   const [supplierSelected, setSupplierSelected] = useState(false);
   const [decisionSent, setDecisionSent] = useState(false);
+  const resetDemo = useCallback(() => {
+    setQuantityCorrected(false);
+    setExtractionConfirmed(false);
+    setSapCreated(false);
+    setRfqsGenerated(false);
+    setSupplierSelected(false);
+    setDecisionSent(false);
+  }, []);
 
   return (
     <DemoContext.Provider value={{
@@ -32,7 +41,8 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       sapCreated, setSapCreated,
       rfqsGenerated, setRfqsGenerated,
       supplierSelected, setSupplierSelected,
-      decisionSent, setDecisionSent
+      decisionSent, setDecisionSent,
+      resetDemo,
     }}>
       {children}
     </DemoContext.Provider>
@@ -44,3 +54,5 @@ export const useDemo = () => {
   if (!ctx) throw new Error("useDemo must be used within DemoProvider");
   return ctx;
 };
+
+export const useDemoReset = () => useContext(DemoContext)?.resetDemo ?? (() => undefined);

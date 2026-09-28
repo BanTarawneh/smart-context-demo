@@ -1,25 +1,7 @@
 import { ArrowRight, Check, CircleDot, GitBranch, Github, Network, ShieldCheck, Sparkles } from 'lucide-react';
 import { Link } from 'wouter';
 import { BrandLogo } from '../components/BrandLogo';
-
-const previewNodes = [
-  { label: 'SAP', x: 48, y: 72, tone: 'bg-sc-blue' },
-  { label: 'CRM', x: 72, y: 152, tone: 'bg-sc-green' },
-  { label: 'Email', x: 54, y: 246, tone: 'bg-sc-amber' },
-  { label: 'Contracts', x: 145, y: 316, tone: 'bg-sc-navy' },
-  { label: 'RFQ', x: 270, y: 178, tone: 'bg-sc-cyan' },
-  { label: 'Suppliers', x: 426, y: 86, tone: 'bg-sc-blue' },
-  { label: 'Margin', x: 468, y: 252, tone: 'bg-sc-green' },
-];
-
-const previewLines = [
-  [48, 72, 270, 178],
-  [72, 152, 270, 178],
-  [54, 246, 270, 178],
-  [145, 316, 270, 178],
-  [270, 178, 426, 86],
-  [270, 178, 468, 252],
-];
+import { LandingContextGraph } from '../components/LandingContextGraph';
 
 const pillars = [
   {
@@ -54,9 +36,7 @@ export function Landing() {
     <div className="min-h-[100dvh] overflow-x-hidden bg-sc-paper text-sc-navy">
       <header className="sticky top-0 z-30 border-b border-white/10 bg-sc-navy/95 text-white backdrop-blur">
         <div className="mx-auto flex max-w-[1240px] items-center justify-between px-5 py-4 lg:px-8">
-          <Link href="/" data-testid="link-brand-home" className="rounded-md focus:outline-none focus:ring-2 focus:ring-sc-cyan">
-            <BrandLogo variant="wordmark" invert className="h-8" />
-          </Link>
+          <BrandLogo variant="wordmark" invert className="h-8" testId="link-landing-header-home" />
           <nav className="hidden items-center gap-7 text-sm font-bold text-white/65 md:flex" aria-label="Main navigation">
             <Link href="/platform" data-testid="link-platform" className="transition-colors hover:text-white">Platform</Link>
             <a href="#how-it-works" data-testid="link-how-it-works" className="transition-colors hover:text-white">How it works</a>
@@ -104,31 +84,7 @@ export function Landing() {
               </div>
             </div>
 
-            <div data-testid="graph-preview" className="relative min-h-[390px] overflow-hidden rounded-2xl border border-sc-line bg-white p-5 shadow-[0_24px_70px_rgba(11,20,55,.12)]">
-              <div className="absolute inset-0 opacity-60" style={{ backgroundImage: 'linear-gradient(rgba(227,234,243,.65) 1px, transparent 1px), linear-gradient(90deg, rgba(227,234,243,.65) 1px, transparent 1px)', backgroundSize: '32px 32px' }} aria-hidden="true" />
-              <div className="relative z-10 flex items-start justify-between">
-                <div>
-                  <div className="text-xs font-black uppercase tracking-[0.18em] text-sc-muted">Live context graph</div>
-                  <div data-testid="text-preview-status" className="mt-1 flex items-center gap-2 text-sm font-black"><span className="h-2 w-2 rounded-full bg-sc-green" /> RFQ decision context</div>
-                </div>
-                <div className="rounded-md bg-sc-paper px-2 py-1 font-mono text-[10px] font-bold text-sc-muted">47 entities · 112 links</div>
-              </div>
-              <svg viewBox="0 0 520 360" className="relative z-10 mt-6 h-[300px] w-full overflow-visible" role="img" aria-label="Animated preview of systems resolving into an RFQ context graph">
-                {previewLines.map(([x1, y1, x2, y2], index) => (
-                  <line key={`${x1}-${y1}-${index}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#B9C9D9" strokeWidth="1.5" strokeDasharray="5 6" className="motion-safe:animate-pulse" style={{ animationDelay: `${index * 240}ms` }} />
-                ))}
-                {previewNodes.map((node, index) => (
-                  <g key={node.label} transform={`translate(${node.x}, ${node.y})`} className="motion-safe:animate-pulse" style={{ animationDelay: `${index * 180}ms` }}>
-                    <circle r={node.label === 'RFQ' ? 27 : 19} fill="white" stroke={node.label === 'RFQ' ? '#4ECBDE' : '#E3EAF3'} strokeWidth={node.label === 'RFQ' ? 4 : 2} />
-                    <circle r={node.label === 'RFQ' ? 7 : 5} fill={node.tone === 'bg-sc-blue' ? '#1C77BE' : node.tone === 'bg-sc-green' ? '#2E9B75' : node.tone === 'bg-sc-amber' ? '#C9772C' : node.tone === 'bg-sc-cyan' ? '#4ECBDE' : '#0B1437'} />
-                    <text y="36" textAnchor="middle" fill="#5A6B85" fontSize="11" fontWeight="700">{node.label}</text>
-                  </g>
-                ))}
-              </svg>
-              <div className="absolute bottom-4 left-5 right-5 flex items-center justify-between border-t border-sc-line pt-3 text-[11px] font-bold text-sc-muted">
-                <span>Every fact has a source.</span><span className="text-sc-green">Synced just now</span>
-              </div>
-            </div>
+            <LandingContextGraph />
           </div>
         </section>
 
@@ -217,7 +173,7 @@ export function Landing() {
 
       <footer className="border-t border-white/10 bg-sc-navy px-5 py-7 text-white/60 lg:px-8">
         <div className="mx-auto flex max-w-[1240px] flex-col justify-between gap-4 text-xs font-bold sm:flex-row sm:items-center">
-          <BrandLogo variant="wordmark" invert className="h-7" />
+          <BrandLogo variant="wordmark" invert className="h-7" testId="link-landing-footer-home" />
           <span>Context for decisions that carry weight.</span>
         </div>
       </footer>
